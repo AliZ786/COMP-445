@@ -1,3 +1,3 @@
 ## COMP445 - Data Communication & Network Protocols
-Assignments and Project done for COMP 445: Data Communication & Network Protocols at Concordia University in the semester Winter 2022
+Assignments and Project done for COMP 445: Data Communication & Network Protocols at Concordia University in the semester Fall 2022
 
