@@ -55,6 +55,32 @@ def get_request(url, v):
     if file:
         file.close()
 
+def post_method(url, v):
+    skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    skt.connect((url.netloc, 80))
+
+
+    concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
+                                      + url.netloc + "\r\n" + "\r\n\r\n"
+
+    request = concatenated_url_string.encode()
+    skt.send(request)
+
+
+    if v:
+            print(skt.recv(4096).decode("utf-8"))
+    else:
+            response = skt.recv(4096).decode("utf-8")
+            try:
+                index = response.index('{')
+                print(response[index:])
+            except ValueError:
+                print(response)
+
+    skt.close()
+
+
+
 
 
 parser = argparse.ArgumentParser(description='httpc is a curl-like application but supports HTTP protocol only.')
@@ -83,5 +109,12 @@ elif args.command == 'get':
         print('Error: no URL has been specified. URL is required after "get"')
         exit()
 
-# elif args.command == 'post':
-#     print('in post')
+elif args.command == 'post':
+    if args.arg2:
+        unquoted_url = args.arg2.replace("'", "")
+        parsed_url = urlparse(unquoted_url)
+        get_request(parsed_url, args.verbose)
+    else:
+        print('Error: no URL has been specified. URL is required after "post"')
+        exit()
+    
