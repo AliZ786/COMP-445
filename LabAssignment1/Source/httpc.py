@@ -1,4 +1,3 @@
-
 import argparse
 from sys import exit
 import socket
@@ -28,14 +27,43 @@ def help_post_method():
     return string
 
 
+def get_request(url, v):
 
+    skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    skt.connect((url.netloc, 80))
+
+
+    concatenated_url_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
+                                  + url.netloc + "\r\n\r\n"
+
+    request = concatenated_url_string.encode()
+    skt.send(request)
+    file = None
+
+
+    if v:
+        print(skt.recv(4096).decode("utf-8"))
+    else:
+        response = skt.recv(4096).decode("utf-8")
+        try:
+            index = response.index('{')
+            print(response[index:])
+        except ValueError:
+            print(response)
+
+    skt.close()
+    if file:
+        file.close()
 
 
 
 parser = argparse.ArgumentParser(description='httpc is a curl-like application but supports HTTP protocol only.')
 parser.add_argument('command', type=str, help=help_method())
+parser.add_argument('arg2', type=str)
 parser.add_argument('-gh', '--gethelp', help=help_get_method(), action="store_true")
 parser.add_argument('-ph', '--posthelp', help=help_post_method(), action="store_true")
+
+parser.add_argument('-v', '--verbose', action="store_true")
 args = parser.parse_args()
 
 if args.command == 'help':
@@ -46,8 +74,14 @@ if args.command == 'help':
     else:
         print(help_method())
 
-# elif args.command == 'get':
-#     print('in get')
+elif args.command == 'get':
+    if args.arg2:
+        unquoted_url = args.arg2.replace("'", "")
+        parsed_url = urlparse(unquoted_url)
+        get_request(parsed_url, args.verbose)
+    else:
+        print('Error: no URL has been specified. URL is required after "get"')
+        exit()
 
 # elif args.command == 'post':
 #     print('in post')
