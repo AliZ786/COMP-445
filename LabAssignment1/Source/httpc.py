@@ -55,7 +55,7 @@ def get_request(url, v):
     if file:
         file.close()
 
-def post_method(url, v):
+def post_method(url, v, h):
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     skt.connect((url.netloc, 80))
 
@@ -66,6 +66,19 @@ def post_method(url, v):
     request = concatenated_url_string.encode()
     skt.send(request)
 
+    if h:
+        if ':' not in h:
+            print("Error: please format the header (-h) in the form of 'key:value'.")
+            return
+        else:
+            concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + \
+                                          " HTTP/1.1\r\nHost: " + url.netloc + "\r\n" + h + "\r\n\r\n"
+    else:
+        concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
+                                      + url.netloc + "\r\n" + "\r\n\r\n"
+
+    request = concatenated_url_string.encode()
+    skt.send(request)
 
     if v:
             print(skt.recv(4096).decode("utf-8"))
@@ -90,6 +103,7 @@ parser.add_argument('-gh', '--gethelp', help=help_get_method(), action="store_tr
 parser.add_argument('-ph', '--posthelp', help=help_post_method(), action="store_true")
 
 parser.add_argument('-v', '--verbose', action="store_true")
+parser.add_argument('-h', '--header')
 args = parser.parse_args()
 
 if args.command == 'help':
@@ -113,7 +127,7 @@ elif args.command == 'post':
     if args.arg2:
         unquoted_url = args.arg2.replace("'", "")
         parsed_url = urlparse(unquoted_url)
-        get_request(parsed_url, args.verbose)
+        post_method(parsed_url, args.verbose, args.headers)
     else:
         print('Error: no URL has been specified. URL is required after "post"')
         exit()
