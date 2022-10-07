@@ -43,15 +43,12 @@ def help_command():
 
 def get_request(url, v, h, o):
 
+
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     skt.connect((url.netloc, 80))
 
     if h:
-        if ':' not in h:
-            print("Error: please format the header (-h) in the form of 'key:value'.")
-            return
-        else:
-            concatenated_url_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
+        concatenated_url_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
                                       + url.netloc + "\r\n" + h + "\r\n\r\n"
     else:
         concatenated_url_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
@@ -79,10 +76,10 @@ def get_request(url, v, h, o):
             print(skt.recv(4096).decode("utf-8"))
         else:
             response = skt.recv(4096).decode("utf-8")
-        try:
-            index = response.index('{')
-            print(response[index:])
-        except ValueError:
+            try:
+                index = response.index('{')
+                print(response[index:])
+            except ValueError:
                 print(response)
         
 
@@ -104,7 +101,6 @@ def post_request(url, v, h, d, f, o):
         d = file.read()
         file.close()
         data = "Content-Length:" + str(len(d)) + "\r\n\r\n" + d
-
 
     if h:
         if ':' not in h:
@@ -158,28 +154,43 @@ parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('command', type=str, help=help_output(), choices=['help', 'get', 'post'])
 parser.add_argument('arg2', type=str)
 parser.add_argument('-v', '--verbose', action="store_true")
-parser.add_argument('-h', '--header')
+parser.add_argument('-h', '--header', help='Associates headers to HTTP request with the format \'key:value\' ', nargs='*')
 parser.add_argument('-d', '--data')
 parser.add_argument('-f', '--file')
 parser.add_argument('-o', '--filename')
+
 args = parser.parse_args()
+
+headers = ''
+
+
 
 if args.command == 'help':
     help_command()
 
 elif args.command == 'get':
+    if args.header:
+        
+        for i in range(len(args.header)):
+            headers += args.header[i] + '\r\n'
+        print(headers)
     if args.arg2:
         unquoted_url = args.arg2.replace("'", "")
         parsed_url = urlparse(unquoted_url)
-        get_request(parsed_url, args.verbose, args.header, args.filename)
+        get_request(parsed_url, args.verbose, headers, args.filename)
     else:
         print('Error: no URL has been specified. URL is required after "get"')
         exit()
 
 elif args.command == 'post':
+    if args.header:
+            
+            for i in range(len(args.header)):
+                headers += args.header[i] + '\r\n'
+            print(headers)
     if args.data and args.file:
         print("Error: -d and -f can't be used in the same command.")
         exit()
     unquoted_url = args.arg2.replace("'", "")
     parsed_url = urlparse(unquoted_url)
-    post_request(parsed_url, args.verbose, args.header, args.data, args.file, args.filename)
+    post_request(parsed_url, args.verbose, headers, args.data, args.file, args.filename)
