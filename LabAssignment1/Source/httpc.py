@@ -41,7 +41,7 @@ def help_command():
             print("Error: Unknown second argument. Options are 'get' or 'post' after 'help'")
 
 
-def get_request(url, v, h):
+def get_request(url, v, h, o):
 
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     skt.connect((url.netloc, 80))
@@ -62,16 +62,29 @@ def get_request(url, v, h):
     file = None
 
 
-   
-    if v:
-        print(skt.recv(4096).decode("utf-8"))
+    if o:
+        if v:
+            file = open(o, 'w')
+            file.write(skt.recv(4096).decode("utf-8"))
+        else:
+            file = open(o, 'w')
+            response = skt.recv(4096).decode("utf-8")
+            try:
+                index = response.index('{')
+                file.write(response[index:])
+            except ValueError:
+                file.write(response)
     else:
-        response = skt.recv(4096).decode("utf-8")
+        if v:
+            print(skt.recv(4096).decode("utf-8"))
+        else:
+            response = skt.recv(4096).decode("utf-8")
         try:
             index = response.index('{')
             print(response[index:])
         except ValueError:
-            print(response)
+                print(response)
+        
 
     skt.close()
     
@@ -145,7 +158,7 @@ elif args.command == 'get':
     if args.arg2:
         unquoted_url = args.arg2.replace("'", "")
         parsed_url = urlparse(unquoted_url)
-        get_request(parsed_url, args.verbose, args.header)
+        get_request(parsed_url, args.verbose, args.header, args.filename)
     else:
         print('Error: no URL has been specified. URL is required after "get"')
         exit()
