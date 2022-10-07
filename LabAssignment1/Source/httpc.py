@@ -90,7 +90,7 @@ def get_request(url, v, h, o):
     
 
 
-def post_request(url, v, h, d, f):
+def post_request(url, v, h, d, f, o):
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     skt.connect((url.netloc, 80))
 
@@ -127,15 +127,29 @@ def post_request(url, v, h, d, f):
     request = concatenated_url_string.encode()
     skt.send(request)
   
-    if v:
-        print(skt.recv(4096).decode("utf-8"))
+    if o:
+        if v:
+            file_to_write = open(o, 'w')
+            file_to_write.write(skt.recv(4096).decode("utf-8"))
+        else:
+            file_to_write = open(o, 'w')
+            response = skt.recv(4096).decode("utf-8")
+            try:
+                index = response.index('{')
+                file_to_write.write(response[index:])
+            except ValueError:
+                file_to_write.write(response)
     else:
-        response = skt.recv(4096).decode("utf-8")
-        try:
-            index = response.index('{')
-            print(response[index:])
-        except ValueError:
-            print(response)
+
+        if v:
+            print(skt.recv(4096).decode("utf-8"))
+        else:
+            response = skt.recv(4096).decode("utf-8")
+            try:
+                index = response.index('{')
+                print(response[index:])
+            except ValueError:
+                print(response)
 
     skt.close()
 
@@ -154,7 +168,6 @@ if args.command == 'help':
     help_command()
 
 elif args.command == 'get':
-    
     if args.arg2:
         unquoted_url = args.arg2.replace("'", "")
         parsed_url = urlparse(unquoted_url)
@@ -164,7 +177,9 @@ elif args.command == 'get':
         exit()
 
 elif args.command == 'post':
-   
+    if args.data and args.file:
+        print("Error: -d and -f can't be used in the same command.")
+        exit()
     unquoted_url = args.arg2.replace("'", "")
     parsed_url = urlparse(unquoted_url)
-    post_request(parsed_url, args.verbose, args.header, args.data, args.file)
+    post_request(parsed_url, args.verbose, args.header, args.data, args.file, args.filename)
