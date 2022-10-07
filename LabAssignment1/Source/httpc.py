@@ -77,12 +77,22 @@ def get_request(url, v, h):
     
 
 
-def post_request(url, v, h, d):
+def post_request(url, v, h, d, f):
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     skt.connect((url.netloc, 80))
 
-    data = "Content-Length:" + str(len(d)) + "\r\n\r\n" + d
-    
+    data = None
+    file_to_write = None
+
+    if d:
+        data = "Content-Length:" + str(len(d)) + "\r\n\r\n" + d
+    elif f:
+        file = open(f, 'r')
+        d = file.read()
+        file.close()
+        data = "Content-Length:" + str(len(d)) + "\r\n\r\n" + d
+
+
     if h:
         if ':' not in h:
             print("Error: please format the header (-h) in the form of 'key:value'.")
@@ -144,4 +154,4 @@ elif args.command == 'post':
    
     unquoted_url = args.arg2.replace("'", "")
     parsed_url = urlparse(unquoted_url)
-    post_request(parsed_url, args.verbose, args.header, args.data)
+    post_request(parsed_url, args.verbose, args.header, args.data, args.file)

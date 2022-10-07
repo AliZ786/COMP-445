@@ -12,6 +12,7 @@ httpc.py post -v  "http://httpbin.org/post"
 httpc.py post -h Content-Type:application/json "http://httpbin.org/post"
 httpc.py post -v -h Content-Type:application/json  "http://httpbin.org/post"
 httpc.py post -v --d '{"Assignment": 1}' "http://httpbin.org/post"
+httpc.py post -v -h Content-Type:application/json -f test.txt "http://httpbin.org/post"
 
 
 REDIRECT STATEMENTS
