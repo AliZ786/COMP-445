@@ -3,6 +3,9 @@ GET STATEMENTS
 httpc.py get "http://httpbin.org/get?course=networking&assignment=1"
 httpc.py get -v "http://httpbin.org/get?course=networking&assignment=1"
 httpc.py get -v -h Content-Type:application/json "http://httpbin.org/get?course=networking&assignment=1"
+httpc.py get -v 'http://httpbin.org/get?course=networking&assignment=1' -o hello.txt
+httpc.py get -v "https://www.youtube.com/" -o Output.txt
+
 
 
 POST STATEMENTS
@@ -18,4 +21,4 @@ httpc.py post -v -h Content-Type:application/json "http://httpbin.org/post" -o o
 
 REDIRECT STATEMENTS
 ---------------------
-python httpc.py  post  'http://httpbin.org/status/301'
+python httpc.py post 'http://httpbin.org/status/301'
