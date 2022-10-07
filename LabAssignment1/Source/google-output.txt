@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Fri, 07 Oct 2022 21:06:58 GMT
+Expires: -1
+Cache-Control: private, max-age=0
+Content-Type: text/html; charset=ISO-8859-1
+P3P: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+Server: gws
+X-XSS-Protection: 0
+X-Frame-Options: SAMEORIGIN
+Set-Cookie: 1P_JAR=2022-10-07-21; expires=Sun, 06-Nov-2022 21:06:58 GMT; path=/; domain=.google.com; Secure
+Set-Cookie: AEC=AakniGOH8-K6kTPMBPU54qmN4GgodpOYJlI_GJvxJvg1-fLoYaIhJGNL8Hk; expires=Wed, 05-Apr-2023 21:06:58 GMT; path=/; domain=.google.com; Secure; HttpOnly; SameSite=lax
+Set-Cookie: NID=511=iGSTEl6xO14GLHp6B2rrgt1gJxJJVeahXe50_ewy47kmL83otLYpXATiYcFE56TeHJGMXACOE9jLLx2pnGlUX-peeph_X8ZZzPN7PnEXstlYwP01ZsIxvuFrZHy6LWl6iT5-025iPwWjwGjX8lPwqD7JSnkTeabYaerc1AL9gEM; expires=Sat, 08-Apr-2023 21:06:58 GMT; path=/; domain=.google.com; HttpOnly
+Accept-Ranges: none
+Vary: Accept-Encoding
+Transfer-Encoding: chunked
+
+53ff
+<!doctype html><html itemscope="" itemtype="http://schema.org/WebPage" lang="en-CA"><head><meta content="text/html; charset=UTF-8" http-equiv="Content-Type"><meta content="/images/branding/googleg/1x/googleg_standard_color_128dp.png" itemprop="image"><title>Google</title><script nonce="n16g6f63iPKxgjsX_fMvFQ">(function(){window.google={kEI:'8pRAY_2wD4_E4-EP2ZWDmA4',kEXPI:'0,202535,12,1099989,56873,6058,207,2414,2390,2316,383,246,5,5367,1123753,1197711,690,380089,16115,28684,22431,1361,12317,2818,14764,4998,13227,3848,10622,22741,5081,1593,1279,2742,149,1103,840,1983,214,4100,3514,606,2024,1776,520,14670,3227,2845,7,29074,4696,1851,2614,13142,3,346,230,1014,1,5445,148,11323,2652,4,1528,2304,7039,27731,7357,13658,4437,16786,5770,2587,4094,4052,3,3541,1,42154,2,14022,2715,11401,11623,5679,1020,2379,28743,4568,6256,23421,1252,5835,14968,4332,7484,445,2,2,1,17306,9326,8155,7321,60,2,15968,873,14836,4797,7,1922,9779,21779,9543,4832,15964,1052,122,700,4,1,2,2,2,2,424,4914,2888,5690,3530,1604,7391,1355,993,14,82,950,2940,751,202,1868,4936,1600,1019,46,5,113,2572,922,613,248,1080,341,221,252,987,162,506,1941,1159,51,166,337,3,1,3,399,498,107,459,931,1940,888,366,15,2834,1,951,823,507,857,244,643,707,1,132,239,205,1142,103,110,315,2,298,308,32,16,662,744,2555,294,109,1165,154,435,28,198,195,61,43,214,380,1243,235,226,1068,40,28,1702,1103,91,1316,742,241,245,522,2,5329559,75,5994825,1007,16,2803401,3311,141,795,19735,1,1,348,1752,59,14,9,2,5,3,4,34,1,78,7451662,16496860,469,2769698,1271975,1964,3094,13578,3406,11318,714',kBL:'W-mA'};google.sn='webhp';google.kHL='en-CA';})();(function(){
+var f=this||self;var h,k=[];function l(a){for(var b;a&&(!a.getAttribute||!(b=a.getAttribute("eid")));)a=a.parentNode;return b||h}function m(a){for(var b=null;a&&(!a.getAttribute||!(b=a.getAttribute("leid")));)a=a.parentNode;return b}
+function n(a,b,c,d,g){var e="";c||-1!==b.search("&ei=")||(e="&ei="+l(d),-1===b.search("&lei=")&&(d=m(d))&&(e+="&lei="+d));d="";!c&&f._cshid&&-1===b.search("&cshid=")&&"slh"!==a&&(d="&cshid="+f._cshid);c=c||"/"+(g||"gen_204")+"?atyp=i&ct="+a+"&cad="+b+e+"&zx="+Date.now()+d;/^http:/i.test(c)&&"https:"===window.location.protocol&&(google.ml&&google.ml(Error("a"),!1,{src:c,glmm:1}),c="");return c};h=google.kEI;google.getEI=l;google.getLEI=m;google.ml=function(){return null};google.log=function(a,b,c,d,g){if(c=n(a,b,c,d,g)){a=new Image;var e=k.length;k[e]=a;a.onerror=a.onload=a.onabort=function(){delete k[e]};a.src=c}};google.logUrl=n;}).call(this);(function(){
+google.y={};google.sy=[];google.x=function(a,b){if(a)var c=a.id;else{do c=Math.random();while(google.y[c])}google.y[c]=[a,b];return!1};google.sx=function(a){google.sy.push(a)};google.lm=[];google.plm=function(a){google.lm.push.apply(google.lm,a)};google.lq=[];google.load=function(a,b,c){google.lq.push([[a],b,c])};google.loadAll=function(a,b){google.lq.push([a,b])};google.bx=!1;google.lx=function(){};}).call(this);google.f={};(function(){
+document.documentElement.addEventListener("submit",function(b){var a;if(a=b.target){var c=a.getAttribute("data-submitfalse");a="1"===c||"q"===c&&!a.elements.q.value?!0:!1}else a=!1;a&&(b.preventDefault(),b.stopPropagation())},!0);document
