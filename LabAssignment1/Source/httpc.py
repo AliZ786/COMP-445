@@ -77,24 +77,30 @@ def get_request(url, v, h):
     
 
 
-def post_request(url, v, h):
+def post_request(url, v, h, d):
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     skt.connect((url.netloc, 80))
-  
 
+    data = "Content-Length:" + str(len(d)) + "\r\n\r\n" + d
+    
     if h:
         if ':' not in h:
             print("Error: please format the header (-h) in the form of 'key:value'.")
             return
         else:
-            concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + \
+            if data:
+                concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + \
+                                          " HTTP/1.1\r\nHost: " + url.netloc + "\r\n" + h + "\r\n" + data + "\r\n"
+            else:
+                concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + \
                                           " HTTP/1.1\r\nHost: " + url.netloc + "\r\n" + h + "\r\n\r\n"
-
-            
     else:
-        concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
+        if data:
+            concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
+                                  + url.netloc + "\r\n" + data + "\r\n"
+        else:
+            concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
                                       + url.netloc + "\r\n" + "\r\n\r\n"
-
     request = concatenated_url_string.encode()
     skt.send(request)
   
@@ -138,4 +144,4 @@ elif args.command == 'post':
    
     unquoted_url = args.arg2.replace("'", "")
     parsed_url = urlparse(unquoted_url)
-    post_request(parsed_url, args.verbose, args.header)
+    post_request(parsed_url, args.verbose, args.header, args.data)
