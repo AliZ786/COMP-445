@@ -89,6 +89,7 @@ def post_request(url, v, h):
         else:
             concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + \
                                           " HTTP/1.1\r\nHost: " + url.netloc + "\r\n" + h + "\r\n\r\n"
+
             
     else:
         concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
