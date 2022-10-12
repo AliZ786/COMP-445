@@ -34,10 +34,9 @@ def help_command():
         print(help_get_output())
     elif args.arg2 == 'post':
         print(help_post_output())
-    else:
-        if not args.arg2:
+    elif args.arg2 == "help":
             print(help_output())
-        else:
+    else:
             print("Error: Unknown second argument. Options are 'get' or 'post' after 'help'")
 
 
@@ -169,11 +168,6 @@ if args.command == 'help':
     help_command()
 
 elif args.command == 'get':
-    if args.header:
-        
-        for i in range(len(args.header)):
-            headers += args.header[i] + '\r\n'
-        print(headers)
     if args.arg2:
         unquoted_url = args.arg2.replace("'", "")
         parsed_url = urlparse(unquoted_url)
@@ -183,14 +177,10 @@ elif args.command == 'get':
         exit()
 
 elif args.command == 'post':
-    if args.header:
-            
-            for i in range(len(args.header)):
-                headers += args.header[i] + '\r\n'
-            print(headers)
-    if args.data and args.file:
-        print("Error: -d and -f can't be used in the same command.")
-        exit()
-    unquoted_url = args.arg2.replace("'", "")
-    parsed_url = urlparse(unquoted_url)
-    post_request(parsed_url, args.verbose, headers, args.data, args.file, args.filename)
+    if args.arg2:
+        if args.data and args.file:
+            print("Error: -d and -f can't be used in the same command.")
+            exit()
+        unquoted_url = args.arg2.replace("'", "")
+        parsed_url = urlparse(unquoted_url)
+        post_request(parsed_url, args.verbose, headers, args.data, args.file, args.filename)
