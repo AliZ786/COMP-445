@@ -153,7 +153,7 @@ parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('command', type=str, help=help_output(), choices=['help', 'get', 'post'])
 parser.add_argument('arg2', type=str)
 parser.add_argument('-v', '--verbose', action="store_true")
-parser.add_argument('-h', '--header', help='Associates headers to HTTP request with the format \'key:value\' ', nargs='*')
+parser.add_argument('-h', '--header', help='Associates headers to HTTP request with the format \'key:value\'')
 parser.add_argument('-d', '--data')
 parser.add_argument('-f', '--file')
 parser.add_argument('-o', '--filename')
@@ -168,19 +168,22 @@ if args.command == 'help':
     help_command()
 
 elif args.command == 'get':
-    if args.arg2:
+    if args.data or args.file:
+        print('Error: -d (--data) or -f (--file) are not accepted arguments for the "get" command. Enter "httpc '
+              'help [get, post] to get help.')
+        exit()
+    elif args.arg2:
         unquoted_url = args.arg2.replace("'", "")
         parsed_url = urlparse(unquoted_url)
-        get_request(parsed_url, args.verbose, headers, args.filename)
+        get_request(parsed_url, args.verbose, args.header, args.filename)
     else:
         print('Error: no URL has been specified. URL is required after "get"')
         exit()
 
 elif args.command == 'post':
-    if args.arg2:
-        if args.data and args.file:
-            print("Error: -d and -f can't be used in the same command.")
-            exit()
-        unquoted_url = args.arg2.replace("'", "")
-        parsed_url = urlparse(unquoted_url)
-        post_request(parsed_url, args.verbose, headers, args.data, args.file, args.filename)
+    if args.data and args.file:
+        print("Error: -d and -f can't be used in the same command.")
+        exit()
+    unquoted_url = args.arg2.replace("'", "")
+    parsed_url = urlparse(unquoted_url)
+    post_request(parsed_url, args.verbose, args.header, args.data, args.file, args.filename)
