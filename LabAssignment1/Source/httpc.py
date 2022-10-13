@@ -39,10 +39,7 @@ def help_command():
     else:
             print("Error: Unknown second argument. Options are 'get' or 'post' after 'help'")
 
-
-def get_request(url, v, h, o):
-
-
+def sendGetRequest(url, h):
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     skt.connect((url.netloc, 80))
 
@@ -55,43 +52,16 @@ def get_request(url, v, h, o):
 
     request = concatenated_url_string.encode()
     skt.send(request)
-    file = None
-
-
-    if o:
-        if v:
-            file = open(o, 'w')
-            file.write(skt.recv(4096).decode("utf-8"))
-        else:
-            file = open(o, 'w')
-            response = skt.recv(4096).decode("utf-8")
-            try:
-                index = response.index('{')
-                file.write(response[index:])
-            except ValueError:
-                file.write(response)
-    else:
-        if v:
-            print(skt.recv(4096).decode("utf-8"))
-        else:
-            response = skt.recv(4096).decode("utf-8")
-            try:
-                index = response.index('{')
-                print(response[index:])
-            except ValueError:
-                print(response)
-        
-
+    response = skt.recv(4096).decode("utf-8")
     skt.close()
     
+    return response
 
-
-def post_request(url, v, h, d, f, o):
+def sendPostRequest(url, h, d, f):
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     skt.connect((url.netloc, 80))
 
     data = None
-    file_to_write = None
 
     if d:
         data = "Content-Length:" + str(len(d)) + "\r\n\r\n" + d
@@ -121,14 +91,61 @@ def post_request(url, v, h, d, f, o):
                                       + url.netloc + "\r\n" + "\r\n\r\n"
     request = concatenated_url_string.encode()
     skt.send(request)
+    response = skt.recv(4096).decode("utf-8")
+    skt.close()
+    return response
+
+def get_request(url, v, h, o):
+    response = sendGetRequest(url, h)
+    status_code = int(response.split("HTTP/")[1].split()[1]) # getting the initial status code number
+    
+    # WHILE REDIRECTION STATUS CODE
+    while (status_code >= 300 and status_code <= 399):
+        new_path = urlparse(response.split("Location:")[1].split()[0]) # getting redirection url
+        response = sendGetRequest(new_path, h) # overwriting the request response
+        status_code = int(response.split("HTTP/")[1].split()[1]) # getting the status code number
+    
+    file = None
+
+    if o:
+        if v:
+            file = open(o, 'w')
+            file.write(response)
+        else:
+            file = open(o, 'w')
+            try:
+                index = response.index('{')
+                file.write(response[index:])
+            except ValueError:
+                file.write(response)
+    else:
+        if v:
+            print(response)
+        else:
+            try:
+                index = response.index('{')
+                print(response[index:])
+            except ValueError:
+                print(response)
+
+def post_request(url, v, h, d, f, o):
+    response = sendPostRequest(url, h, d, f)
+    status_code = int(response.split("HTTP/")[1].split()[1]) # getting the initial status code number
+    
+    # WHILE REDIRECTION STATUS CODE
+    while (status_code >= 300 and status_code <= 399):
+        new_path = urlparse(response.split("Location:")[1].split()[0]) # getting redirection url
+        response = sendGetRequest(new_path, h) # overwriting the request response
+        status_code = int(response.split("HTTP/")[1].split()[1]) # getting the status code number
+
+    file_to_write = None
   
     if o:
         if v:
             file_to_write = open(o, 'w')
-            file_to_write.write(skt.recv(4096).decode("utf-8"))
+            file_to_write.write(response)
         else:
             file_to_write = open(o, 'w')
-            response = skt.recv(4096).decode("utf-8")
             try:
                 index = response.index('{')
                 file_to_write.write(response[index:])
@@ -137,16 +154,13 @@ def post_request(url, v, h, d, f, o):
     else:
 
         if v:
-            print(skt.recv(4096).decode("utf-8"))
+            print(response)
         else:
-            response = skt.recv(4096).decode("utf-8")
             try:
                 index = response.index('{')
                 print(response[index:])
             except ValueError:
                 print(response)
-
-    skt.close()
 
 
 parser = argparse.ArgumentParser(add_help=False)
