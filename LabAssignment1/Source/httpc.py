@@ -135,9 +135,10 @@ def post_request(url, v, h, d, f, o):
     # WHILE REDIRECTION STATUS CODE
     while (status_code >= 300 and status_code <= 399):
         new_path = urlparse(response.split("Location:")[1].split()[0]) # getting redirection url
-        response = sendGetRequest(new_path, h) # overwriting the request response
+        response = sendPostRequest(new_path, h, d, f)
         status_code = int(response.split("HTTP/")[1].split()[1]) # getting the status code number
 
+    print(new_path)
     file_to_write = None
   
     if o:
