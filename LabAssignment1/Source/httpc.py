@@ -29,12 +29,13 @@ def help_post_output():
     return output
 
 parser = argparse.ArgumentParser(add_help=False)
-parser.add_argument('command', type=str, choices=['help', 'help_get', 'help_post'])
+parser.add_argument('command', type=str, choices=['help', 'help_get', 'help_post', 'get', 'post'])
 parser.add_argument('-v',dest='verbose', action='store_true')
 parser.add_argument('-h', dest='header', help='Associates headers to HTTP request with the format \'key:value\'')
 parser.add_argument('-d', dest='data', type = str)
 parser.add_argument('-f', dest = 'file', type=str)
 parser.add_argument('-o', dest='filename')
+parser.add_argument('url', help="url")
 args = parser.parse_args()
 print(args)
 
@@ -169,7 +170,6 @@ def post_request(url, v, h, d, f, o):
 
 
 
-headers = ''
 
 if args.command == 'help_get':
         print(help_get_output())
@@ -178,20 +178,18 @@ elif args.command == 'help_post':
 elif args.command == "help":
             print(help_output())
 
-
-
-# elif args.command == 'get':
-#     if args.data or args.file:
-#         print('Error: -d (--data) or -f (--file) are not accepted arguments for the "get" command. Enter "httpc '
-#               'help [get, post] to get help.')
-#         exit()
-#     elif args.arg2:
-#         unquoted_url = args.arg2.replace("'", "")
-#         parsed_url = urlparse(unquoted_url)
-#         get_request(parsed_url, args.verbose, args.header, args.filename)
-#     else:
-#         print('Error: no URL has been specified. URL is required after "get"')
-#         exit()
+elif args.command == 'get':
+    if args.data or args.file:
+        print('Error: -d (--data) or -f (--file) are not accepted arguments for the "get" command. Enter "httpc '
+              'help [get, post] to get help.')
+        exit()
+    elif args.url:
+        unquoted_url = args.url.replace("'", "")
+        parsed_url = urlparse(unquoted_url)
+        get_request(parsed_url, args.verbose, args.header, args.filename)
+    else:
+        print('Error: no URL has been specified. URL is required after "get"')
+        exit()
 
 # elif args.command == 'post':
 #     if args.data and args.file:
