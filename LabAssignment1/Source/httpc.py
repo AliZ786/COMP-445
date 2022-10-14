@@ -77,16 +77,16 @@ def sendPostRequest(url, h, d, f):
         d = file.read()
         file.close()
         data = "Content-Length:" + str(len(d)) + "\r\n\r\n" + d
-
+    headers = ''
     if h:
-        if ':' not in h:
-            print("Error: please format the header (-h) in the form of 'key:value'.")
-            return
-        else:
-            if data:
+        for i in range(len(args.header)):
+            headers += args.header[i] +'\r\n'
+            print(headers)
+        if data:
                 concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + \
-                                          " HTTP/1.1\r\nHost: " + url.netloc + "\r\n" + h + "\r\n" + data + "\r\n"
-            else:
+                                          " HTTP/1.1\r\nHost: " + url.netloc + "\r\n" + headers + data + "\r\n"
+                print('in data')
+        else:
                 concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + \
                                           " HTTP/1.1\r\nHost: " + url.netloc + "\r\n" + h + "\r\n\r\n"
     else:
