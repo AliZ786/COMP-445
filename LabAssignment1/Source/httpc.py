@@ -28,16 +28,19 @@ def help_post_output():
              'can be used but not both.'
     return output
 
+parser = argparse.ArgumentParser(add_help=False)
+parser.add_argument('command', type=str, choices=['help', 'help_get', 'help_post'])
+parser.add_argument('-v',dest='verbose', action='store_true')
+parser.add_argument('-h', dest='header', help='Associates headers to HTTP request with the format \'key:value\'')
+parser.add_argument('-d', dest='data', type = str)
+parser.add_argument('-f', dest = 'file', type=str)
+parser.add_argument('-o', dest='filename')
+args = parser.parse_args()
+print(args)
 
-def help_command():
-    if args.arg2 == 'get':
-        print(help_get_output())
-    elif args.arg2 == 'post':
-        print(help_post_output())
-    elif args.arg2 == "help":
-            print(help_output())
-    else:
-            print("Error: Unknown second argument. Options are 'get' or 'post' after 'help'")
+
+
+
 
 def sendGetRequest(url, h):
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -163,44 +166,37 @@ def post_request(url, v, h, d, f, o):
                 print(response)
 
 
-parser = argparse.ArgumentParser(add_help=False)
-parser.add_argument('command', type=str, help=help_output(), choices=['help', 'get', 'post'])
-parser.add_argument('arg2', type=str)
-parser.add_argument('-v', '--verbose', action="store_true")
-parser.add_argument('-h', '--header', help='Associates headers to HTTP request with the format \'key:value\'')
-parser.add_argument('-d', '--data')
-parser.add_argument('-f', '--file')
-parser.add_argument('-o', '--filename')
 
-args = parser.parse_args()
+
 
 headers = ''
 
+if args.command == 'help_get':
+        print(help_get_output())
+elif args.command == 'help_post':
+        print(help_post_output())
+elif args.command == "help":
+            print(help_output())
 
 
-if args.command == 'help':
-    help_command()
 
-elif args.command == 'get':
-    if args.data or args.file:
-        print('Error: -d (--data) or -f (--file) are not accepted arguments for the "get" command. Enter "httpc '
-              'help [get, post] to get help.')
-        exit()
-    elif args.arg2:
-        unquoted_url = args.arg2.replace("'", "")
-        parsed_url = urlparse(unquoted_url)
-        get_request(parsed_url, args.verbose, args.header, args.filename)
-    else:
-        print('Error: no URL has been specified. URL is required after "get"')
-        exit()
+# elif args.command == 'get':
+#     if args.data or args.file:
+#         print('Error: -d (--data) or -f (--file) are not accepted arguments for the "get" command. Enter "httpc '
+#               'help [get, post] to get help.')
+#         exit()
+#     elif args.arg2:
+#         unquoted_url = args.arg2.replace("'", "")
+#         parsed_url = urlparse(unquoted_url)
+#         get_request(parsed_url, args.verbose, args.header, args.filename)
+#     else:
+#         print('Error: no URL has been specified. URL is required after "get"')
+#         exit()
 
-elif args.command == 'post':
-    if args.data and args.file:
-        print("Error: -d and -f can't be used in the same command.")
-        exit()
-    elif args.data == None or args.file == None:
-        print("Error: Need atleast one of -d or -f in a post command.")
-        exit()
-    unquoted_url = args.arg2.replace("'", "")
-    parsed_url = urlparse(unquoted_url)
-    post_request(parsed_url, args.verbose, args.header, args.data, args.file, args.filename)
+# elif args.command == 'post':
+#     if args.data and args.file:
+#         print("Error: -d and -f can't be used in the same command.")
+#         exit()
+#     unquoted_url = args.arg2.replace("'", "")
+#     parsed_url = urlparse(unquoted_url)
+#     post_request(parsed_url, args.verbose, args.header, args.data, args.file, args.filename)
