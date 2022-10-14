@@ -1,5 +1,5 @@
 HTTP/1.1 200 OK
-Date: Fri, 07 Oct 2022 21:05:33 GMT
+Date: Fri, 14 Oct 2022 03:50:10 GMT
 Content-Type: application/json
 Content-Length: 285
 Connection: keep-alive
@@ -14,8 +14,8 @@ Access-Control-Allow-Credentials: true
   }, 
   "headers": {
     "Host": "httpbin.org", 
-    "X-Amzn-Trace-Id": "Root=1-6340949d-179b40730a38f78d31c19ffd"
+    "X-Amzn-Trace-Id": "Root=1-6348dc72-3efcd6477c50bf5a64b2efff"
   }, 
-  "origin": "132.205.229.214", 
+  "origin": "142.120.206.140", 
   "url": "http://httpbin.org/get?course=networking&assignment=1"
 }

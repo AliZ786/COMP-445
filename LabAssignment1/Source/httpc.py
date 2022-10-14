@@ -31,11 +31,11 @@ def help_post_output():
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('command', type=str, choices=['help', 'help_get', 'help_post', 'get', 'post'])
 parser.add_argument('-v',dest='verbose', action='store_true')
-parser.add_argument('-h', dest='header', help='Associates headers to HTTP request with the format \'key:value\'')
+parser.add_argument('-h', dest='header', help='Associates headers to HTTP request with the format \'key:value\'', action='append')
 parser.add_argument('-d', dest='data', type = str)
 parser.add_argument('-f', dest = 'file', type=str)
 parser.add_argument('-o', dest='filename')
-parser.add_argument('url', help="url")
+parser.add_argument('-u',dest='url', type=str, help="url")
 args = parser.parse_args()
 print(args)
 
@@ -46,10 +46,13 @@ print(args)
 def sendGetRequest(url, h):
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     skt.connect((url.netloc, 80))
-
+    headers = ''
     if h:
+        for i in range(len(args.header)):
+            headers += args.header[i] +'\r\n'
+            print(headers)
         concatenated_url_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
-                                      + url.netloc + "\r\n" + h + "\r\n\r\n"
+                                      + url.netloc + "\r\n" + headers + "\r\n\r\n"
     else:
         concatenated_url_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
                                   + url.netloc + "\r\n\r\n"
@@ -191,10 +194,15 @@ elif args.command == 'get':
         print('Error: no URL has been specified. URL is required after "get"')
         exit()
 
-# elif args.command == 'post':
-#     if args.data and args.file:
-#         print("Error: -d and -f can't be used in the same command.")
-#         exit()
-#     unquoted_url = args.arg2.replace("'", "")
-#     parsed_url = urlparse(unquoted_url)
-#     post_request(parsed_url, args.verbose, args.header, args.data, args.file, args.filename)
+elif args.command == 'post':
+     if args.data and args.file:
+       print("Error: -d and -f can't be used in the same command.")
+       exit()
+     elif args.data == None and args.file ==None:
+        print("Atleast one of -d or -f should be in a post command")
+        exit()
+     elif args.url:
+        unquoted_url = args.url.replace("'", "")
+        parsed_url = urlparse(unquoted_url)
+        post_request(parsed_url, args.verbose, args.header, args.data, args.file, args.filename)
+

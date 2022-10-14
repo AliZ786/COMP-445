@@ -1,10 +1,10 @@
 GET STATEMENTS
 ---------------------
-python httpc.py get "http://httpbin.org/get?course=networking&assignment=1"
-python httpc.py get -v "http://httpbin.org/get?course=networking&assignment=1"
-python httpc.py get -v -h Content-Type:application/json "http://httpbin.org/get?course=networking&assignment=1"
+python httpc.py get -u "http://httpbin.org/get?course=networking&assignment=1"
+python httpc.py get -v -u "http://httpbin.org/get?course=networking&assignment=1"
+python httpc.py get -v -h Content-Type:application/json -u "http://httpbin.org/get?course=networking&assignment=1"
+python httpc.py get -v -h Content-Type:application/json -h  hello:bello -u "http://httpbin.org/get?course=networking&assignment=1"
 python httpc.py get -v 'http://httpbin.org/get?course=networking&assignment=1' -o hello.txt
-python httpc.py get -v "https://www.youtube.com/" -o Output.txt
 
 
 
