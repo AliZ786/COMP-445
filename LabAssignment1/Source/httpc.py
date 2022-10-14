@@ -138,7 +138,6 @@ def post_request(url, v, h, d, f, o):
         response = sendPostRequest(new_path, h, d, f)
         status_code = int(response.split("HTTP/")[1].split()[1]) # getting the status code number
 
-    print(new_path)
     file_to_write = None
   
     if o:
@@ -198,6 +197,9 @@ elif args.command == 'get':
 elif args.command == 'post':
     if args.data and args.file:
         print("Error: -d and -f can't be used in the same command.")
+        exit()
+    elif args.data == None or args.file == None:
+        print("Error: Need atleast one of -d or -f in a post command.")
         exit()
     unquoted_url = args.arg2.replace("'", "")
     parsed_url = urlparse(unquoted_url)
