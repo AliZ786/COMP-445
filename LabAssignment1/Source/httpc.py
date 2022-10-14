@@ -38,6 +38,7 @@ parser.add_argument('-o', dest='filename')
 parser.add_argument('-u',dest='url', type=str, help="url")
 args = parser.parse_args()
 print(args)
+print("\n")
 
 
 

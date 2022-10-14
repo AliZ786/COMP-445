@@ -4,7 +4,7 @@ python httpc.py get -u "http://httpbin.org/get?course=networking&assignment=1"
 python httpc.py get -v -u "http://httpbin.org/get?course=networking&assignment=1"
 python httpc.py get -v -h Content-Type:application/json -u "http://httpbin.org/get?course=networking&assignment=1"
 python httpc.py get -v -h Content-Type:application/json -h  hello:bello -u "http://httpbin.org/get?course=networking&assignment=1"
-python httpc.py get -v 'http://httpbin.org/get?course=networking&assignment=1' -o hello.txt
+python httpc.py get -v -u 'http://httpbin.org/get?course=networking&assignment=1' -o hello.txt
 
 
 
@@ -12,6 +12,7 @@ POST STATEMENTS
 ---------------------
 python httpc.py post -u "http://httpbin.org/post"
 python httpc.py post -v -d '{"Assignment": 1}' -u "http://httpbin.org/post"
+python httpc.py post -v -h Content-Type:application/json -d '{"Assignment": 1}' -u "http://httpbin.org/post"
 python httpc.py post -v -f test.txt  -h hello:bello -h Content-Type:code -u "http://httpbin.org/post"
 python httpc.py post -v -h Content-Type:application/json -f test.txt -u "http://httpbin.org/post"
 
@@ -19,4 +20,4 @@ python httpc.py post -v -h Content-Type:application/json -f test.txt -u "http://
 REDIRECT STATEMENTS
 ---------------------
 python httpc.py  get -v -u 'https://bit.ly/3RQCaEQ' 
-python httpc.py post -d Content-Length:300  -u 'https://bit.ly/3RQCaEQ''
+python httpc.py post -d Content-Length:300  -u 'https://bit.ly/3RQCaEQ'
