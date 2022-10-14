@@ -40,7 +40,7 @@ args = parser.parse_args()
 print(args)
 print("\n")
 
-
+delimiter = ":"
 
 
 
@@ -48,11 +48,18 @@ def sendGetRequest(url, h):
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     skt.connect((url.netloc, 80))
     headers = ''
+    
     if h:
         for i in range(len(args.header)):
             headers += args.header[i] +'\r\n'
             print(headers)
-        concatenated_url_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
+
+        if delimiter not in args.header[i]:
+            print("One or multiple headers do not follow the proper key:value format")
+            exit()
+
+        else:
+         concatenated_url_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
                                       + url.netloc + "\r\n" + headers + "\r\n\r\n"
     else:
         concatenated_url_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
@@ -78,11 +85,19 @@ def sendPostRequest(url, h, d, f):
         d = file.read()
         file.close()
         data = "Content-Length:" + str(len(d)) + "\r\n\r\n" + d
+        
     headers = ''
+
     if h:
         for i in range(len(args.header)):
             headers += args.header[i] +'\r\n'
             print(headers)
+
+        if delimiter not in args.header[i]:
+            print("One or multiple headers do not follow the proper key:value format")
+            exit()
+
+
         if data:
                 concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + \
                                           " HTTP/1.1\r\nHost: " + url.netloc + "\r\n" + headers + data + "\r\n"
