@@ -14,7 +14,7 @@ python httpc.py post -v -d '{"Assignment": 1}' -u "http://httpbin.org/post"
 python httpc.py post -v -h Content-Type:application/json -d '{"Assignment": 1}' -u "http://httpbin.org/post"
 python httpc.py post -v -f test.txt  -h hello:bello -h Content-Type:code -u "http://httpbin.org/post"
 python httpc.py post -v -h Content-Type:application/json -f test.txt -u "http://httpbin.org/post"
- python httpc.py post -v -h Content-Type:application/json -h hello:bello  -f test.txt -u "http://httpbin.org/post" -o output_post.txt
+python httpc.py post -v -h Content-Type:application/json -h hello:bello  -f test.txt -u "http://httpbin.org/post" -o output_post.txt
 
 
 REDIRECT STATEMENTS

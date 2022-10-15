@@ -3,31 +3,11 @@ from sys import exit
 import socket
 from urllib.parse import urlparse
 
+# Global variables 
+delimiter = ":"
+response_string = ''
 
-def help_output():
-    output = '\nhttpc is a curl-like application but supports HTTP protocol only.\nUsage:\n\thttpc.py command ' \
-             '[arguments]\nThe commands are:\n\tget\texecutes a HTTP GET request and prints the response.\n\tpost\t' \
-             'executes a HTTP POST request and prints the response.\n\thelp\tprints this screen.\n\n' \
-             'Use "httpc help [command]" for more information about a command.\n'
-    return output
-
-
-def help_get_output():
-    output = '\nusage: httpc get [-v] [-h key:value] URL\n\nGet executes a HTTP GET request for a given URL.\n\t-v' \
-             '\t\tPrints the detail of the response such as protocol, status, and headers.\n\t-h key:value\t' \
-             'Associates headers to HTTP Request with the format "key:value".\n'
-    return output
-
-
-def help_post_output():
-    output = '\nusage: httpc post [-v] [-h key:value] [-d inline-data] [-f file] URL\n\nPost executes a HTTP ' \
-             'POST request for a given URL with inline data or from file.\n\t-v\t\tPrints the detail of the ' \
-             'response such as protocol, status, and headers.\n\t-h key:value\tAssociates headers to HTTP Request ' \
-             'with the format "key:value".\n\t-d string\tAssociates an inline data to the body HTTP POST request.' \
-             '\n\t-f file\t\tAssociates the content of a file to the body HTTP POST request.\n\nEither [-d] or [-f] ' \
-             'can be used but not both.'
-    return output
-
+# Argparse stuff 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('command', type=str, choices=['help', 'help_get', 'help_post', 'get', 'post'])
 parser.add_argument('-v',dest='verbose', action='store_true')
@@ -40,14 +20,41 @@ args = parser.parse_args()
 print(args)
 print("\n")
 
-delimiter = ":"
-response_string = ''
+
+
+# Help functions
+def help_response():
+    response_string = '\nhttpc is a curl-like application but supports HTTP protocol only.\nUsage:\n\thttpc.py command ' \
+             '[arguments]\nThe commands are:\n\tget\texecutes a HTTP GET request and prints the response.\n\tpost\t' \
+             'executes a HTTP POST request and prints the response.\n\thelp\tprints this screen.\n\n' \
+             'Use "httpc help [command]" for more information about a command.\n'
+    return response_string
+
+
+def help_get_response():
+    response_string = '\nusage: httpc get [-v] [-h key:value] URL\n\nGet executes a HTTP GET request for a given URL.\n\t-v' \
+             '\t\tPrints the detail of the response such as protocol, status, and headers.\n\t-h key:value\t' \
+             'Associates headers to HTTP Request with the format "key:value".\n'
+    return response_string
+
+
+def help_post_response():
+    response_string = '\nusage: httpc post [-v] [-h key:value] [-d inline-data] [-f file] URL\n\nPost executes a HTTP ' \
+             'POST request for a given URL with inline data or from file.\n\t-v\t\tPrints the detail of the ' \
+             'response such as protocol, status, and headers.\n\t-h key:value\tAssociates headers to HTTP Request ' \
+             'with the format "key:value".\n\t-d string\tAssociates an inline data to the body HTTP POST request.' \
+             '\n\t-f file\t\tAssociates the content of a file to the body HTTP POST request.\n\nEither [-d] or [-f] ' \
+             'can be used but not both.'
+    return response_string
 
 
 
-def sendGetRequest(url, h):
-    skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    skt.connect((url.netloc, 80))
+
+
+def get_request_output(url, h):
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((url.netloc, 80))
     headers = ''
     
     if h:
@@ -66,28 +73,28 @@ def sendGetRequest(url, h):
                                   + url.netloc + "\r\n\r\n"
 
     request = response_string.encode()
-    skt.send(request)
-    response = skt.recv(4096).decode("utf-8")
-    skt.close()
+    sock.send(request)
+    response = sock.recv(4096).decode("utf-8")
+    sock.close()
     
     return response
 
-def sendPostRequest(url, h, d, f):
-    skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    skt.connect((url.netloc, 80))
+def post_request_output(url, h, d, f):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((url.netloc, 80))
 
     data = None
     headers = ''
 
     if d:
         data = "Content-Length:" + str(len(d)) + "\r\n\r\n" + d
+
     elif f:
         file = open(f, 'r')
         d = file.read()
         file.close()
         data = "Content-Length:" + str(len(d)) + "\r\n\r\n" + d
         
-    
 
     if h:
         for i in range(len(args.header)):
@@ -108,21 +115,21 @@ def sendPostRequest(url, h, d, f):
             print("We are here")
 
     request = response_string.encode()
-    skt.send(request)
-    response = skt.recv(4096).decode("utf-8")
-    skt.close()
+    sock.send(request)
+    response = sock.recv(4096).decode("utf-8")
+    sock.close()
     return response
 
 def get_request(url, v, h, o):
-    response = sendGetRequest(url, h)
+    response = get_request_output(url, h)
     status_code = int(response.split("HTTP/")[1].split()[1]) # getting the initial status code number
     
     # WHILE REDIRECTION STATUS CODE
     while (status_code >= 300 and status_code <= 399):
-        new_path = urlparse(response.split("Location:")[1].split()[0]) # getting redirection url
-        response = sendGetRequest(new_path, h) # overwriting the request response
-        status_code = int(response.split("HTTP/")[1].split()[1]) # getting the status code number
-    
+        redirected_url = urlparse(response.split("Location:")[1].split()[0]) 
+        response = get_request_output(redirected_url, h) 
+        status_code = int(response.split("HTTP/")[1].split()[1]) 
+        
     file = None
 
     if o:
@@ -147,13 +154,13 @@ def get_request(url, v, h, o):
                 print(response)
 
 def post_request(url, v, h, d, f, o):
-    response = sendPostRequest(url, h, d, f)
+    response = post_request_output(url, h, d, f)
     status_code = int(response.split("HTTP/")[1].split()[1]) # getting the initial status code number
     
     # WHILE REDIRECTION STATUS CODE
     while (status_code >= 300 and status_code <= 399):
-        new_path = urlparse(response.split("Location:")[1].split()[0]) # getting redirection url
-        response = sendPostRequest(new_path, h, d, f)
+        redirected_url = urlparse(response.split("Location:")[1].split()[0]) # getting redirection url
+        response = post_request_output(redirected_url, h, d, f)
         status_code = int(response.split("HTTP/")[1].split()[1]) # getting the status code number
 
     file_to_write = None
@@ -182,38 +189,44 @@ def post_request(url, v, h, d, f, o):
 
 
 
-
-
-
-if args.command == 'help_get':
-        print(help_get_output())
+# Checks all the commands defined from argparse and creates the appropriate request 
+if args.command == 'help':
+        print(help_output())
 elif args.command == 'help_post':
         print(help_post_output())
-elif args.command == "help":
-            print(help_output())
+elif args.command == "help_get":
+            print(help_get_output())
 
 elif args.command == 'get':
     if args.data or args.file:
-        print('Error: -d (--data) or -f (--file) are not accepted arguments for the "get" command. Enter "httpc '
-              'help [get, post] to get help.')
+        print('Cannot have -d or -f in the get command. Please verify your syntax. ')
         exit()
+
     elif args.url:
-        unquoted_url = args.url.replace("'", "")
-        parsed_url = urlparse(unquoted_url)
-        get_request(parsed_url, args.verbose, args.header, args.filename)
+        response_url = args.url.replace("'", "")
+        parsed_response_url = urlparse(response_url)
+        get_request(parsed_response_url, args.verbose, args.header, args.filename)
+
     else:
         print('Error: no URL has been specified. URL is required after "get"')
         exit()
 
 elif args.command == 'post':
-     if args.data and args.file:
-       print("Error: -d and -f can't be used in the same command.")
+    if args.data and args.file:
+       print("Error: -d and -f can't be used in the same post command. Please verify your syntax.")
        exit()
-     elif args.data == None and args.file ==None:
-        print("Atleast one of -d or -f should be in a post command")
+
+    elif args.data == None and args.file ==None:
+        print("Atleast one of -d or -f should be in a post command. Please verify your syntax.")
         exit()
-     elif args.url:
-        unquoted_url = args.url.replace("'", "")
-        parsed_url = urlparse(unquoted_url)
-        post_request(parsed_url, args.verbose, args.header, args.data, args.file, args.filename)
+
+    elif args.url:
+        response_url = args.url.replace("'", "")
+        parsed_response_url = urlparse(response_url)
+        post_request(parsed_response_url, args.verbose, args.header, args.data, args.file, args.filename)
+    
+    else:
+        print('Error: no URL has been specified. URL is required after "post"')
+        exit()
+    
 
