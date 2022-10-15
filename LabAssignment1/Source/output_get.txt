@@ -1,7 +1,7 @@
 HTTP/1.1 200 OK
-Date: Fri, 14 Oct 2022 06:41:52 GMT
+Date: Sat, 15 Oct 2022 00:50:37 GMT
 Content-Type: application/json
-Content-Length: 308
+Content-Length: 331
 Connection: keep-alive
 Server: gunicorn/19.9.0
 Access-Control-Allow-Origin: *
@@ -13,9 +13,10 @@ Access-Control-Allow-Credentials: true
     "course": "networking"
   }, 
   "headers": {
-    "Hello": "bello", 
     "Host": "httpbin.org", 
-    "X-Amzn-Trace-Id": "Root=1-634904b0-5b4f350a47c8c942376efa14"
+    "Key1": "value1", 
+    "Key2": "value2", 
+    "X-Amzn-Trace-Id": "Root=1-634a03dd-4b9931f84c84601824b0c75f"
   }, 
   "origin": "142.120.206.140", 
   "url": "http://httpbin.org/get?course=networking&assignment=1"

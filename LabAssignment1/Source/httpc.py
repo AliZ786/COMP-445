@@ -41,6 +41,7 @@ print(args)
 print("\n")
 
 delimiter = ":"
+response_string = ''
 
 
 
@@ -52,20 +53,19 @@ def sendGetRequest(url, h):
     if h:
         for i in range(len(args.header)):
             headers += args.header[i] +'\r\n'
-            print(headers)
 
         if delimiter not in args.header[i]:
             print("One or multiple headers do not follow the proper key:value format")
             exit()
 
         else:
-         concatenated_url_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
+         response_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
                                       + url.netloc + "\r\n" + headers + "\r\n\r\n"
     else:
-        concatenated_url_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
+        response_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
                                   + url.netloc + "\r\n\r\n"
 
-    request = concatenated_url_string.encode()
+    request = response_string.encode()
     skt.send(request)
     response = skt.recv(4096).decode("utf-8")
     skt.close()
@@ -77,6 +77,7 @@ def sendPostRequest(url, h, d, f):
     skt.connect((url.netloc, 80))
 
     data = None
+    headers = ''
 
     if d:
         data = "Content-Length:" + str(len(d)) + "\r\n\r\n" + d
@@ -86,33 +87,27 @@ def sendPostRequest(url, h, d, f):
         file.close()
         data = "Content-Length:" + str(len(d)) + "\r\n\r\n" + d
         
-    headers = ''
+    
 
     if h:
         for i in range(len(args.header)):
             headers += args.header[i] +'\r\n'
-            print(headers)
 
         if delimiter not in args.header[i]:
             print("One or multiple headers do not follow the proper key:value format")
             exit()
 
-
         if data:
-                concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + \
+                response_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + \
                                           " HTTP/1.1\r\nHost: " + url.netloc + "\r\n" + headers + data + "\r\n"
                 print('in data')
-        else:
-                concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + \
-                                          " HTTP/1.1\r\nHost: " + url.netloc + "\r\n" + h + "\r\n\r\n"
+    
     else:
-        if data:
-            concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
+            response_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
                                   + url.netloc + "\r\n" + data + "\r\n"
-        else:
-            concatenated_url_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
-                                      + url.netloc + "\r\n" + "\r\n\r\n"
-    request = concatenated_url_string.encode()
+            print("We are here")
+
+    request = response_string.encode()
     skt.send(request)
     response = skt.recv(4096).decode("utf-8")
     skt.close()
