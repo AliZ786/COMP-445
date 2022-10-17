@@ -20,4 +20,4 @@ python httpc.py post -v -h Content-Type:application/json -h hello:bello  -f test
 REDIRECT STATEMENTS
 ---------------------
 python httpc.py  get -v -u 'https://bit.ly/3RQCaEQ' 
-python httpc.py post -d Content-Length:300  -u 'https://bit.ly/3RQCaEQ'
+python httpc.py post -v -d Content-Length:300  -u 'https://bit.ly/3RQCaEQ'
