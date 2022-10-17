@@ -56,17 +56,18 @@ def get_request_output(url, h):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((url.netloc, 80))
     headers = ''
+
     
     if h:
         for i in range(len(args.header)):
             headers += args.header[i] +'\r\n'
 
-        if delimiter not in args.header[i]:
-            print("One or multiple headers do not follow the proper key:value format")
-            exit()
+            if delimiter not in args.header[i]:
+                print("One or multiple headers do not follow the proper key:value format for the header:")
+                exit()
 
-        else:
-         response_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
+            else:
+             response_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
                                       + url.netloc + "\r\n" + headers + "\r\n\r\n"
     else:
         response_string = "GET " + url.path + "?" + url.query.replace("%26", "&") + " HTTP/1.1\r\nHost: " \
@@ -95,14 +96,13 @@ def post_request_output(url, h, d, f):
         file.close()
         data = "Content-Length:" + str(len(d)) + "\r\n\r\n" + d
         
-
     if h:
         for i in range(len(args.header)):
             headers += args.header[i] +'\r\n'
 
-        if delimiter not in args.header[i]:
-            print("One or multiple headers do not follow the proper key:value format")
-            exit()
+            if delimiter not in args.header[i]:
+                print("One or multiple headers do not follow the proper key:value format")
+                exit()
 
         if data:
                 response_string = "POST " + url.path + "?" + url.query.replace("%26", "&") + \
