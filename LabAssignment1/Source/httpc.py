@@ -63,7 +63,7 @@ def get_request_output(url, h):
             headers += args.header[i] +'\r\n'
 
             if delimiter not in args.header[i]:
-                print("One or multiple headers do not follow the proper key:value format for the header:")
+                print("One or multiple headers do not follow the proper key:value format")
                 exit()
 
             else:
@@ -124,7 +124,7 @@ def get_request(url, v, h, o):
     response = get_request_output(url, h)
     status_code = int(response.split("HTTP/")[1].split()[1]) # getting the initial status code number
     
-    # WHILE REDIRECTION STATUS CODE
+    # redirection code - comment on/off for demo 
     while (status_code >= 300 and status_code <= 399):
         redirected_url = urlparse(response.split("Location:")[1].split()[0]) 
         response = get_request_output(redirected_url, h) 
@@ -157,7 +157,7 @@ def post_request(url, v, h, d, f, o):
     response = post_request_output(url, h, d, f)
     status_code = int(response.split("HTTP/")[1].split()[1]) # getting the initial status code number
     
-    # WHILE REDIRECTION STATUS CODE
+    # redirection code - comment on/off for demo 
     while (status_code >= 300 and status_code <= 399):
         redirected_url = urlparse(response.split("Location:")[1].split()[0]) # getting redirection url
         response = post_request_output(redirected_url, h, d, f)
