@@ -191,11 +191,11 @@ def post_request(url, v, h, d, f, o):
 
 # Checks all the commands defined from argparse and creates the appropriate request 
 if args.command == 'help':
-        print(help_output())
+        print(help_response())
 elif args.command == 'help_post':
-        print(help_post_output())
+        print(help_post_response())
 elif args.command == "help_get":
-            print(help_get_output())
+            print(help_get_response())
 
 elif args.command == 'get':
     if args.data or args.file:
