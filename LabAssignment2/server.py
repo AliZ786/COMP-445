@@ -10,6 +10,7 @@ class Server:
     self.method = []
     self.content = 'Empty content'
     self.request_response = 'No response'
+    self.request_data = ''
     self.request_header, self.request_body = request.split('\r\n\r\n')
 
     header = self.request_header.split('\r\n')
@@ -73,7 +74,22 @@ class Server:
         self.request_response = self.call_request("invalid")
 
     elif self.method == "POST":
-      
+      if re.match(r'/(.+)', self.request_string):
+        self.f = self.request_string[1:]
+        self.request_response = self.call_request("postFile")
+        self.request_data = self.request_body
+
+      else:
+        self.request_response = self.call_request("invalid")
+
+    elif self.request_response == self.call_request("download"):
+      print("Download not available for post")
+      pass
+
+    else:
+       self.request_response = self.call_request("invalid")
+
+
 
 
 
