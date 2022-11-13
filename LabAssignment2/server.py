@@ -1,10 +1,7 @@
 import re
 
 class Server:
-
-
-
-
+  
   def __init__(self, request):
 
     self.method = []
