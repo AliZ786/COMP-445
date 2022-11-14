@@ -11,6 +11,9 @@ response_string = ''
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument("command", type=str, choices = ["?"])
+parser.add_argument("-v", dest="verbose", help="print debugging messages", action="store_true", required = False)
+parser.add_argument("-p", dest="port", type=int, help="specifies port number server will listen on", default = 8080)
+parser.add_argument("-d", dest="directory", type=str, help="specifies the directory", default = "./data")
 args = parser.parse_args()
 print(args)
 
