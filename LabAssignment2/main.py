@@ -48,6 +48,7 @@ args = parser.parse_args()
 
 def get_all_files(directory):
   files_list = []
+  STATUS_CODE = ''
 
   for root, dirs, files in os.walk(directory):
     for file in files:
@@ -61,6 +62,7 @@ def get_all_files(directory):
 
 def checkAccess(file, directory):
   files_list = []
+  STATUS_CODE = ''
 
   if re.match(r'\.\.\/', file):
     STATUS_CODE - '400'
@@ -82,7 +84,8 @@ def checkAccess(file, directory):
 
 def get_file(file, directory):
 
-  files_list, file, directory = checkAccess(file, directory)  
+  files_list = checkAccess(file, directory) 
+ 
 
   if len(files_list) >0:
     if file in files_list:
@@ -293,6 +296,7 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
             body_output['args'] = request_parser.param
             STATUS_CODE = '200'
         elif request_parser.operation == FileOperation.GetFileList:
+            STATUS_CODE = '200'
             body_output['files'] = response_body
         elif request_parser.operation == FileOperation.GetFileContent:
             if STATUS_CODE in ['400','404']:
