@@ -104,12 +104,6 @@ def get_file(file, directory):
       print("Attempting to read files from the directory...\n")
       with open(directory + '/' + file, 'r') as f:
         response_string = f.read()
-         
-    except IOError as e:
-      print(e)
-      STATUS_CODE = '400'
-      response_string = '[Error Code - 404]: ' + f'Unable to find file in the directory {directory}'
-    else:
       STATUS_CODE = '200'
       response_string = f'[Success Code - 200]: Successfully got \'{file}\''  
  
@@ -313,7 +307,7 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
             STATUS_CODE = '200'
             body_output['files'] = response_body
         elif request_parser.operation == GET_FILE:
-            if STATUS_CODE == '404' and FileNotFoundError:
+            if STATUS_CODE == '404':
                 STATUS_CODE = '404'
                 body_output['Error'] = response_body
                 
