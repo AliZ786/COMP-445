@@ -23,6 +23,13 @@ file_content = ''
 host = 'localhost'
 client_response =''
 server_response = ''
+get = 0
+getFiles = 1
+getFile = 2
+post = 3
+download = 4
+postFile = 5
+status_code = 404
 
 ## Argparse commands
 parser = argparse.ArgumentParser(description = 'httpfs is a simple file server', conflict_handler = 'resolve')
@@ -38,62 +45,68 @@ args = parser.parse_args()
 
 
 
-# def get_all_files(directory):
-#   files_list = []
+def get_all_files(directory):
+  files_list = []
 
-#   for root, files in os.walk(directory):
-#     for file in files:
-#       location = root + '/' + file
-#       files_list.append(location[(len(directory)):])
-
- 
-#   print("[Status Code]: " + 200 + "Able to get files from " + directory)
-#   return files_list
-
-# def checkAccess(file, directory):
-#   files_list = []
-
-#   if re.match(r'\.\.\/', file):
+  for root, dirs, files in os.walk(directory):
+    for file in files:
+      location = root + '/' + file
+      files_list.append(location[(len(directory) +1):])
     
-#     response_string = f'[Error Code - 400]: Cannot access files from this {directory} ' 
+    # if '__pycache__' in dirs:
+    #   dirs.remove('__pycache__')
+ 
+  print(f"[Status Code - 200]: Able to get files from {directory}")
+  return files_list
 
-#   elif directory != 'data':
-#     response_string = '[Error Code -400]: Not the data directory, hence cannot access'
+def checkAccess(file, directory):
+  files_list = []
 
-#     response_string = response_string
-#   else:
-#     if re.match(r'\/', file):
-#       file = file.split('/')[-1]
-#       directory = file.split('/')[-2]
+  if re.match(r'\.\.\/', file):
+    FileManager.status = 400
+    response_string = f'[Error Code - 400]: Cannot access files from this {directory} ' 
 
-#     files_list =  get_all_files(directory)
+  elif directory != 'data':
+    FileManager.status = 400
+    response_string = '[Error Code -400]: Not the data directory, hence cannot access'
 
-#   return files_list, file, directory
+    response_string = response_string
+  else:
+    if re.match(r'\/', file):
+      file = file.split('/')[-1]
+      directory = file.split('/')[-2]
 
-# def get_file(file, directory):
+    files_list =  get_all_files(directory)
 
-#   files_list, file, directory = checkAccess(file, directory)  
+  return files_list, file, directory
 
-#   if len(files_list) >0:
-#     if file in files_list:
-#       try:
-#         print("Attempting to read files from the directory...\n")
-#         with open(directory + '/' + file, 'r') as f:
-#           response_string = f.read()
+def get_file(file, directory):
+
+  files_list, file, directory = checkAccess(file, directory)  
+
+  if len(files_list) >0:
+    if file in files_list:
+      try:
+        print("Attempting to read files from the directory...\n")
+        with open(directory + '/' + file, 'r') as f:
+          response_string = f.read()
       
-#       finally:
-#         print("Finished attempting to read the files....")
+      finally:
+        print("Finished attempting to read the files....")
 
-#       response_string = '[Success Code - 200]: '+response_string
+      FileManager.status = 200
+      response_string = '[Success Code - 200]: '+response_string
 
-#     else:
-#       response_string = '[Error Code - 404]: ' + f'Unable to find file in the {directory}'
+    else:
+      FileManager.status = 404
+      response_string = '[Error Code - 404]: ' + f'Unable to find file in the {directory}'
 
-#   else:
-#     response_string = '[Error Code - 404]: ' + f'The {directory} does not contain any files.'
+  else:
+    FileManager.status= 404
+    response_string = '[Error Code - 404]: ' + f'The {directory} does not contain any files.'
 
 
-#   return response_string
+  return response_string
 
 # def post_file(file, directory, content):
 #   files_list, file, directory = checkAccess(file, directory)
@@ -119,36 +132,7 @@ args = parser.parse_args()
 
 #   return response_string
 
-
-# def checkRequest(request):
-
   
-#     if request == "getFiles":
-#         print("Getting all files from the directory.....\n")
-    
-#     elif request == "defaultGet":
-#       print("Getting directory....\n")
-
-    
-#     elif request == "defaultPost":
-#       print("Posting to default directory....\n")
-
-#     elif request == "postFile":
-#         print("Posting content for file.....\n")
-
-#     elif request == "getFile":
-#         print("Getting specific file from the command.....\n")
-
-#     elif request =="download":
-#         print("Downloading content.....\n")
-    
-#     else:
-#       print("Request is invalid....\n")
-        
-
-#     return request
-
-
 # def splitRequest(request):
 #   content_type = 'application/json'
 
@@ -214,20 +198,20 @@ args = parser.parse_args()
 
 #   return data, file, file_content
 
-def runServer(port, directory):
+def runServer(host, port, directory):
   listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
   try:
     ip_address = socket.gethostbyname(host)
     listener.bind((host, port))
-    listener.listen(5)
+    listener.listen(6)
     print(f'Server is listening at port number {port}\n')
 
     while True:
       conn, addr = listener.accept()
       threading.Thread(target= handle_client, args = (conn, addr, directory)).start()
     
-  finally:
+  except KeyboardInterrupt:
     listener.close()
 
 
@@ -265,28 +249,28 @@ def _get_response(request_parser, dir_path):
         # GET request
 
         # Basic GET
-        if request_parser.operation == FileOperation.GetResource:
+        if request_parser.operation == get:
             response = _generate_full_response_by_type(request_parser, request_parser.param, file_manager)
         # GET file list
-        elif request_parser.operation == FileOperation.GetFileList:    
+        elif request_parser.operation == getFiles:    
             # return a list of current files in the data directory
-            files_list = file_manager.get_files_list_in_dir(dir_path)
+            files_list = get_all_files(dir_path)
             print(f'files list is : {files_list}')
             response = _generate_full_response_by_type(request_parser,files_list,file_manager)
         # Get File Content
-        elif request_parser.operation == FileOperation.GetFileContent:
-            file_content = file_manager.get_file_content(request_parser.fileName, dir_path)
+        elif request_parser.operation == getFile:
+            file_content = get_file(request_parser.fileName, dir_path)
             response = _generate_full_response_by_type(request_parser, file_content, file_manager)
         # Get Download
-        elif request_parser.operation == FileOperation.Download:
+        elif request_parser.operation == download:
             file_content = "Save me!"
             response = _generate_full_response_by_type(request_parser, file_content, file_manager)
         # Post Resource
-        elif request_parser.operation == FileOperation.PostResource:
+        elif request_parser.operation == post:
             response = _generate_full_response_by_type(request_parser, request_parser.data, file_manager)
 
         # Post /bar
-        elif request_parser.operation == FileOperation.PostFileContent:
+        elif request_parser.operation == postFile:
             content_response = file_manager.post_file_content(request_parser.fileName, dir_path, request_parser.data)
             response = _generate_full_response_by_type(request_parser, content_response, file_manager)
         # operation is invalid
@@ -333,8 +317,8 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
         # set json format
         content = json.dumps(body_output)
 
-        response_header = request_parser.version + ' ' + file_manager.status + ' ' + \
-            file_manager.dic_status[file_manager.status] + '\r\n' + \
+        response_header = request_parser.version + ' ' + str(file_manager.status) + ' ' + \
+            file_manager.dic_status[str(status_code)] + '\r\n' + \
             'Content-Length: ' + str(len(content)) + '\r\n' + \
             'Content-Type: ' + request_parser.contentType + '\r\n'
         # Content-Disposition
@@ -405,10 +389,10 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
 
 def main():
   try:
-    runServer(args.port, args.dir)
+    runServer(host, args.port, args.dir)
 
   except KeyboardInterrupt:
-    print("GOODBYE")
+    print("\nGOODBYE")
     sys.exit(0)
 
 
