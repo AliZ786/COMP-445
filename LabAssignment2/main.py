@@ -302,6 +302,7 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
             if STATUS_CODE in ['400','404']:
                 body_output['Error'] = response_body
             else:
+                STATUS_CODE = '200'
                 body_output['content'] = response_body
         # Download
         elif request_parser.operation == FileOperation.Download:
@@ -309,11 +310,13 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
             body_output['Download Info'] = response_body
         # POST methods
         elif request_parser.operation == FileOperation.PostResource:
+            STATUS_CODE = '200'
             body_output['data'] = response_body
         elif request_parser.operation == FileOperation.PostFileContent:
             if STATUS_CODE in ['400','404']:
                 body_output['Error'] = response_body
             else:
+                STATUS_CODE = '200'
                 body_output['Info'] = response_body
         # Check Http Version
         elif request_parser.version != 'HTTP/1.0':
