@@ -10,9 +10,9 @@ from HttpServer import HttpRequestParser, FileOperation
 from FileManager import FileManager
 
 ## Global variables for the program
-response_string = ''
-method = ''
-data = ''
+RESPONSE_STRING = ''
+METHOD = ''
+DATA = ''
 header = ''
 request_string = ''
 request_response = ''
@@ -200,19 +200,21 @@ def get_file(file, directory):
 
 def runServer(host, port, directory):
   listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  if os.access(directory, os.R_OK,os.W_OK):
+    try:
+      ip_address = socket.gethostbyname(host)
+      listener.bind((host, port))
+      listener.listen(6)
+      print(f'Server is listening at port number {port}\n')
 
-  try:
-    ip_address = socket.gethostbyname(host)
-    listener.bind((host, port))
-    listener.listen(6)
-    print(f'Server is listening at port number {port}\n')
-
-    while True:
-      conn, addr = listener.accept()
-      threading.Thread(target= handle_client, args = (conn, addr, directory)).start()
-    
-  except KeyboardInterrupt:
-    listener.close()
+      while True:
+        conn, addr = listener.accept()
+        threading.Thread(target= handle_client, args = (conn, addr, directory)).start()
+      
+    except KeyboardInterrupt:
+      listener.close()
+  else:
+    print("[Error] Connection closed, access to directory denied:", d)
 
 
 def handle_client(conn, addr, directory):
