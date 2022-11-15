@@ -13,10 +13,10 @@ from FileManager import FileManager
 RESPONSE_STRING = ''
 METHOD = ''
 DATA = ''
-header = ''
-request_string = ''
-request_response = ''
-content_type = ''
+HEADER = ''
+REQUEST_STRING = ''
+REQUEST_RESPONSE = ''
+CONTENT_TYPE = ''
 http_version = '1.1'
 file = ''
 file_content = ''
@@ -200,7 +200,7 @@ def get_file(file, directory):
 
 def runServer(host, port, directory):
   listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  if os.access(directory, os.R_OK,os.W_OK):
+  if os.access(directory, os.R_OK & os.W_OK):
     try:
       ip_address = socket.gethostbyname(host)
       listener.bind((host, port))
