@@ -4,7 +4,8 @@ import sys
 import cmd
 import argparse
 import socket
-
+import threading
+import json
 
 ## Global variables for the program
 response_string = ''
@@ -17,6 +18,19 @@ content_type = ''
 http_version = '1.1'
 file = ''
 file_content = ''
+host = 'localhost'
+client_response =''
+server_response = ''
+
+## Argparse commands
+parser = argparse.ArgumentParser(description = 'httpfs is a simple file server', conflict_handler = 'resolve')
+parser.add_argument('-v','--verbose',help='Prints debugging messages', action='store_true' )
+parser.add_argument('-p','--port',help='Specifies the port number that the server will listen and serve at.\n \
+                                    Default is 8080.', type=int, default=8080 )
+parser.add_argument('-d','--dir',help='Specifies the directory that the server will use to read/write \
+                                    requested files.', default='data' )
+args = parser.parse_args()
+
 
 
 
@@ -112,6 +126,7 @@ def checkRequest(request):
     
     elif request == "defaultGet":
       print("Getting directory....\n")
+
     
     elif request == "defaultPost":
       print("Posting to default directory....\n")
@@ -139,7 +154,7 @@ def splitRequest(request):
 
   header_arr = header.split('\r\n')
 
-  method, request_string, http_version - header_arr[0].split('')
+  method, request_string, http_version = header_arr[0].split(' ')
 
   for string in header_arr[1:]:
     if re.match(r'Content-Type', string):
@@ -153,6 +168,9 @@ def splitRequest(request):
   callRequest()
 
 def callRequest():
+
+  data = ''
+  file_content = ''
   if method == "GET":
     if re.match(r'/get', request_string):
       if request_string in ['/get', '/get?']:
@@ -194,7 +212,117 @@ def callRequest():
 
   return data, file, file_content
 
+def runServer(port, directory):
+  listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+  try:
+    ip_address = socket.gethostbyname(host)
+    listener.bind((host, port))
+    listener.listen(5)
+    print(f'Server is listening at port number {port}\n')
+
+    while True:
+      conn, addr = listener.accept()
+      threading.Thread(target= handle_client, args = (conn, addr, directory)).start()
+    
+  finally:
+    listener.close()
+
+
+def handle_client(conn, addr, directory):
+  print(f'New client from address number {addr}\n')
+
+  try:
+    cont = b''
+    while True:
+      buffer_content = conn.recv(1024)
+      cont += buffer_content
+
+      if len(buffer_content) < 1024:
+        break
+      
+    client_response = cont.decode('utf-8')
+    print(f'Client response received is " \n{client_response}')
+
+
+    split_response = splitRequest(client_response)
+
+    server_response = returnRequest(split_response, directory)
+    
+    conn.sendall(server_response.encode('utf-8'))
+
+  finally:
+    conn.close()
+    print(f'Client with the address number {addr} has been disconnected')
+    
+
+def returnRequest(splitResponse, directory):
+
+  body_output = {}
+  full_response = ''
+
+  if splitResponse == checkRequest("defaultGet"):
+    get_file()
+    body_output['args'] = splitResponse.temp_string
+
+  elif splitResponse == checkRequest('getFiles'):
+    get_all_files()
+    body_output['files'] = request_response
+
+  elif splitResponse == checkRequest('getFile'):
+    get_file()
+    body_output['content'] = request_response
+
+  
+  elif splitResponse == checkRequest('defaultPost'):
+    post_file()
+    body_output['data'] = request_response
+
+  elif splitResponse == checkRequest('postFile'):
+    post_file()
+    body_output['Info'] = request_response
+
+  elif splitResponse == checkRequest('download'):
+    body_output['Download Info'] = request_response
+    
+
+  elif http_version != 'HTTP/1.0':
+    print("Error code -505")
+
+  else:
+    body_output['Invalid'] = request_response
+
+  content = json.dumps(body_output)
+
+  
+  response_header = http_version +  ' ' +  '\r\n' + \
+            'Content-Length: ' + str(len(content)) + '\r\n' + \
+            'Content-Type: ' + content_type+ '\r\n'
+
+  if splitResponse == checkRequest('download'):
+    response_header += f'Content-Disposition: attachment; filename={file} \r\n'
+    response_header += 'Connection: close' + '\r\n\r\n'
+    full_response = response_header + content
+
+    print(full_response)
+
+  return full_response
+
+
+def main():
+  try:
+    runServer(args.port, args.dir)
+
+  except KeyboardInterrupt:
+    print("GOODBYE")
+    sys.exit(0)
+
+
+
+
+
+main()
+    
 
 
 
