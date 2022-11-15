@@ -105,47 +105,50 @@ def get_file(file, directory):
         print("Attempting to read files from the directory...\n")
         with open(directory + '/' + file, 'r') as f:
           response_string = f.read()
+          STATUS_CODE = '200'
+          response_string = '[Success Code - 200]: '+response_string
+
+      except FileNotFoundError as e:
+        STATUS_CODE = '404'
+        response_string = '[Error Code - 404]: ' + f'Unable to find file in the {directory}'
+        print(e)
+
       
       finally:
         print("Finished attempting to read the files....")
 
-      STATUS_CODE = '200'
-      response_string = '[Success Code - 200]: '+response_string
+      
 
+
+  return response_string, STATUS_CODE
+
+def post_file(file, directory, content):
+  files_list = checkAccess(file, directory)
+  STATUS_CODE =''
+
+  if len(files_list) > 0:
+    try:
+      print("Attempting to write to a file.....\n")
+      with open(directory + '/'+ file, 'w') as f:
+        f.write(content)
+    
+    except IOError as e:
+      print(e)
+      STATUS_CODE = '400'
+      response_string = f'[Error Code - 400]: Unable to write content in this {directory}'
+    
     else:
-      STATUS_CODE = '404'
-      response_string = '[Error Code - 404]: ' + f'Unable to find file in the {directory}'
+      STATUS_CODE = '200'
+      response_string = f'[Success Code - 200]: Successful in writing to \'{directory}/{file}\''
+
+    finally:
+      print("Finished attempting to write to a file....\n")
 
   else:
     STATUS_CODE = '404'
     response_string = '[Error Code - 404]: ' + f'The {directory} does not contain any files.'
 
-
   return response_string, STATUS_CODE
-
-# def post_file(file, directory, content):
-#   files_list, file, directory = checkAccess(file, directory)
-
-#   if len(files_list) > 0:
-#     try:
-#       print("Attempting to write to a file.....\n")
-#       with open(directory + '/'+ file, 'w') as f:
-#         f.write(content)
-    
-#     except IOError as e:
-#       print(e)
-#       response_string = f'[Error Code - 400]: Unable to write content in this {directory}'
-    
-#     else:
-#       response_string = f'[Success Code - 200]: Successful in writing to \'{directory}/{file}\''
-
-#     finally:
-#       print("Finished attempting to write to a file....\n")
-
-#   else:
-#     response_string = '[Error Code - 404]: ' + f'The {directory} does not contain any files.'
-
-#   return response_string
 
   
 # def splitRequest(request):
@@ -289,7 +292,7 @@ def _get_response(request_parser, dir_path):
 
         # Post /bar
         elif request_parser.operation == POST_FILE:
-            content_response = file_manager.post_file_content(request_parser.fileName, dir_path, request_parser.data)
+            content_response = post_file(request_parser.fileName, dir_path, request_parser.data)
             response = _generate_full_response_by_type(request_parser, content_response, file_manager)
         # operation is invalid
         else:
@@ -304,29 +307,36 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
         status_message = ''
         STATUS_CODE = ''
         # GET Methods
-        if request_parser.operation == FileOperation.GetResource:
+        if request_parser.operation == GET:
             body_output['args'] = request_parser.param
             STATUS_CODE = '200'
-        elif request_parser.operation == FileOperation.GetFileList:
+        elif request_parser.operation == GET_FILES:
             STATUS_CODE = '200'
             body_output['files'] = response_body
-        elif request_parser.operation == FileOperation.GetFileContent:
-            if STATUS_CODE in ['400','404']:
+        elif request_parser.operation == GET_FILE:
+            if FileNotFoundError:
+                STATUS_CODE = '404'
                 body_output['Error'] = response_body
             else:
                 STATUS_CODE = '200'
                 body_output['content'] = response_body
         # Download
-        elif request_parser.operation == FileOperation.Download:
+        elif request_parser.operation == DOWNLOAD:
             STATUS_CODE = '200'
             body_output['Download Info'] = response_body
         # POST methods
-        elif request_parser.operation == FileOperation.PostResource:
+        elif request_parser.operation == POST:
             STATUS_CODE = '200'
             body_output['data'] = response_body
-        elif request_parser.operation == FileOperation.PostFileContent:
-            if STATUS_CODE in ['400','404']:
+        elif request_parser.operation == POST_FILE:
+            if FileNotFoundError:
+                STATUS_CODE = '404'
                 body_output['Error'] = response_body
+            
+            elif IOError:
+              STATUS_CODE = '400'
+              body_output['Error'] = response_body
+
             else:
                 STATUS_CODE = '200'
                 body_output['Info'] = response_body
@@ -349,7 +359,6 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
         elif STATUS_CODE == '400':
           status_message = ':Bad Request'
 
-        
         elif STATUS_CODE == '404':
           status_message = ':Not Found'
 
@@ -357,7 +366,7 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
           status_message = ':HTTP Version Not Support'
 
         
-
+        print(STATUS_CODE)
 
 
         response_header = request_parser.version + ' ' + str(STATUS_CODE) + ' ' + \
