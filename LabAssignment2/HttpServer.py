@@ -7,6 +7,15 @@ class HttpMethod:
     Post = "POST"
     Invalid = "Invalid"
 
+class FileOperation:
+    Invalid = 0
+    GetFileList = 1
+    GetFileContent = 2
+    GetResource = 3
+    PostResource = 4
+    PostFileContent = 5
+    Download = 6
+
 class HttpRequestParser:
     def __init__(self, request):
         # default values
