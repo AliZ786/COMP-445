@@ -17,26 +17,38 @@ HEADER = ''
 REQUEST_STRING = ''
 REQUEST_RESPONSE = ''
 CONTENT_TYPE = ''
-http_version = '1.1'
-file = ''
-file_content = ''
-host = 'localhost'
-client_response =''
-server_response = ''
-get = 0
-getFiles = 1
-getFile = 2
-post = 3
-download = 4
-postFile = 5
+HTTP_VERSION = '1.1'
+FILE = ''
+FILE_CONTENT = ''
+HOST = 'localhost'
+PORT = 8080
+DIRECTORY = os.getcwd()
+BUFFER_SIZE = 1024
+CLIENT_RESPONSE =''
+SERVER_RESPONSE = ''
+GET = 0
+GET_FILES = 1
+GET_FILE = 2
+POST = 3
+DOWNLOAD = 4
+POST_FILE = 5
 STATUS_CODE = '404'
+
+## to be integrated later
+RESPONSE_PROTOCOL = 'HTTP/1.1'.encode('utf-8')
+RESPONSE_STATUS_OK = '200'.encode('utf-8')
+RESPONSE_STATUS_OK_TEXT = 'OK'.encode('utf-8')
+RESPONSE_STATUS_BAD_REQUEST = '400'.encode('utf-8')
+RESPONSE_STATUS_BAD_REQUEST_TEXT = 'Bad Request'.encode('utf-8')
+RESPONSE_STATUS_NOT_FOUND = '404'.encode('utf-8')
+RESPONSE_STATUS_NOT_FOUND_TEXT = 'Not Found'.encode('utf-8')
 
 
 ## Argparse commands
 parser = argparse.ArgumentParser(description = 'httpfs is a simple file server', conflict_handler = 'resolve')
 parser.add_argument('-v','--verbose',help='Prints debugging messages', action='store_true' )
 parser.add_argument('-p','--port',help='Specifies the port number that the server will listen and serve at.\n \
-                                    Default is 8080.', type=int, default=8080 )
+                                    Default is 8080.', type=int, default=PORT )
 parser.add_argument('-d','--dir',help='Specifies the directory that the server will use to read/write \
                                     requested files.', default='data' )
 args = parser.parse_args()
@@ -254,29 +266,29 @@ def _get_response(request_parser, dir_path):
         # GET request
 
         # Basic GET
-        if request_parser.operation == get:
+        if request_parser.operation == GET:
             response = _generate_full_response_by_type(request_parser, request_parser.param, file_manager)
         # GET file list
-        elif request_parser.operation == getFiles:    
+        elif request_parser.operation == GET_FILES:    
             # return a list of current files in the data directory
             files_list = get_all_files(dir_path)
             
             print(f'files list is : {files_list}')
             response = _generate_full_response_by_type(request_parser,files_list,file_manager)
         # Get File Content
-        elif request_parser.operation == getFile:
+        elif request_parser.operation == GET_FILE:
             file_content = get_file(request_parser.fileName, dir_path)
             response = _generate_full_response_by_type(request_parser, file_content, file_manager)
         # Get Download
-        elif request_parser.operation == download:
+        elif request_parser.operation == DOWNLOAD:
             file_content = "Save me!"
             response = _generate_full_response_by_type(request_parser, file_content, file_manager)
         # Post Resource
-        elif request_parser.operation == post:
+        elif request_parser.operation == POST:
             response = _generate_full_response_by_type(request_parser, request_parser.data, file_manager)
 
         # Post /bar
-        elif request_parser.operation == postFile:
+        elif request_parser.operation == POST_FILE:
             content_response = file_manager.post_file_content(request_parser.fileName, dir_path, request_parser.data)
             response = _generate_full_response_by_type(request_parser, content_response, file_manager)
         # operation is invalid
@@ -420,7 +432,7 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
 
 def main():
   try:
-    runServer(host, args.port, args.dir)
+    runServer(HOST, args.port, args.dir)
 
   except KeyboardInterrupt:
     print("\nGOODBYE")
