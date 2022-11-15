@@ -100,7 +100,7 @@ def get_file(file, directory):
  
 
   if len(files_list) >0:
-    if file in files_list:
+    if os.path.isfile(file):
       try:
         print("Attempting to read files from the directory...\n")
         with open(directory + '/' + file, 'r') as f:
@@ -108,14 +108,16 @@ def get_file(file, directory):
           STATUS_CODE = '200'
           response_string = '[Success Code - 200]: '+response_string   
 
-      except FileNotFoundError as e:
-        STATUS_CODE = '404'
-        response_string = '[Error Code - 404]: ' + f'Unable to find file in the directory {directory}'
-        print(e)
-
+      # except FileNotFoundError as e:
+      #   STATUS_CODE = '404'
+      #   response_string = '[Error Code - 404]: ' + f'Unable to find file in the directory {directory}'
+      #   print(e)
  
-      # finally:
-      #   print("Finished attempting to read the files....")
+      finally:
+        print("Finished attempting to read the files....")
+    else:
+      STATUS_CODE = '404'
+      response_string = '[Error Code - 404]: ' + f'Unable to find file in the directory {directory}'
 
     STATUS_CODE = STATUS_CODE
       
