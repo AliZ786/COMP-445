@@ -29,6 +29,7 @@ getFile = 2
 post = 3
 download = 4
 postFile = 5
+STATUS_CODE = '404'
 
 
 ## Argparse commands
@@ -42,7 +43,7 @@ args = parser.parse_args()
 
 
 
-fm = FileManager()
+# fm = FileManager()
 
 
 def get_all_files(directory):
@@ -55,19 +56,18 @@ def get_all_files(directory):
     
     # if '__pycache__' in dirs:
     #   dirs.remove('__pycache__')
-  fm.status = '200'
-  print(f"[Status Code - 200]: Able to get files from {directory}")
-  return files_list
+  STATUS_CODE = '200'
+  return files_list, STATUS_CODE
 
 def checkAccess(file, directory):
   files_list = []
 
   if re.match(r'\.\.\/', file):
-    fm.status = '400'
+    STATUS_CODE - '400'
     response_string = f'[Error Code - 400]: Cannot access files from this {directory} ' 
 
   elif directory != 'data':
-    fm.status = '400'
+    STATUS_CODE = 400
     response_string = '[Error Code -400]: Not the data directory, hence cannot access'
 
     response_string = response_string
@@ -78,7 +78,7 @@ def checkAccess(file, directory):
 
     files_list =  get_all_files(directory)
 
-  return files_list, file, directory
+  return files_list, file, directory, STATUS_CODE
 
 def get_file(file, directory):
 
@@ -94,19 +94,19 @@ def get_file(file, directory):
       finally:
         print("Finished attempting to read the files....")
 
-      fm.status = '200'
+      STATUS_CODE = '200'
       response_string = '[Success Code - 200]: '+response_string
 
     else:
-      fm.status = '404'
+      STATUS_CODE = '404'
       response_string = '[Error Code - 404]: ' + f'Unable to find file in the {directory}'
 
   else:
-    fm.status= '404'
+    STATUS_CODE = '404'
     response_string = '[Error Code - 404]: ' + f'The {directory} does not contain any files.'
 
 
-  return response_string
+  return response_string, STATUS_CODE
 
 # def post_file(file, directory, content):
 #   files_list, file, directory = checkAccess(file, directory)
@@ -214,7 +214,7 @@ def runServer(host, port, directory):
     except KeyboardInterrupt:
       listener.close()
   else:
-    print("[Error] Connection closed, access to directory denied:", d)
+    print("[Error] Connection closed, access to directory denied:", directory)
 
 
 def handle_client(conn, addr, directory):
@@ -257,6 +257,7 @@ def _get_response(request_parser, dir_path):
         elif request_parser.operation == getFiles:    
             # return a list of current files in the data directory
             files_list = get_all_files(dir_path)
+            
             print(f'files list is : {files_list}')
             response = _generate_full_response_by_type(request_parser,files_list,file_manager)
         # Get File Content
@@ -286,61 +287,61 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
         # default return JSON format of response body
         body_output = {}
         status_message = ''
+        STATUS_CODE = ''
         # GET Methods
         if request_parser.operation == FileOperation.GetResource:
             body_output['args'] = request_parser.param
-            fm.status = '200'
+            STATUS_CODE = '200'
         elif request_parser.operation == FileOperation.GetFileList:
             body_output['files'] = response_body
         elif request_parser.operation == FileOperation.GetFileContent:
-            if fm.status in ['400','404']:
+            if STATUS_CODE in ['400','404']:
                 body_output['Error'] = response_body
             else:
                 body_output['content'] = response_body
         # Download
         elif request_parser.operation == FileOperation.Download:
-            fm.status = '200'
+            STATUS_CODE = '200'
             body_output['Download Info'] = response_body
         # POST methods
         elif request_parser.operation == FileOperation.PostResource:
             body_output['data'] = response_body
         elif request_parser.operation == FileOperation.PostFileContent:
-            if fm.status in ['400','404']:
+            if STATUS_CODE in ['400','404']:
                 body_output['Error'] = response_body
             else:
                 body_output['Info'] = response_body
         # Check Http Version
         elif request_parser.version != 'HTTP/1.0':
             # 505 : HTTP Version Not Support
-            fm.status == '505'
+            STATUS_CODE = '505'
         else:
             body_output['Invalid'] = response_body
-        # set header info
-        body_output['headers'] = request_parser.dict_header_info
-        # set json format
         content = json.dumps(body_output)
 
-        if fm.status == '200':
+        STATUS_CODE = STATUS_CODE
+
+        if STATUS_CODE == '200':
           status_message = ':OK'
 
-        elif fm.status == '301':
+        elif STATUS_CODE == '301':
           status_message = ':Moved Permanently'
 
-        elif fm.status == '400':
+        elif STATUS_CODE == '400':
           status_message = ':Bad Request'
 
         
-        elif fm.status == '404':
+        elif STATUS_CODE == '404':
           status_message = ':Not Found'
 
-        elif fm.status == '505':
+        elif STATUS_CODE == '505':
           status_message = ':HTTP Version Not Support'
 
         
 
 
 
-        response_header = request_parser.version + ' ' + str(fm.status) + ' ' + \
+        response_header = request_parser.version + ' ' + str(STATUS_CODE) + ' ' + \
             status_message + '\r\n' + \
             'Content-Length: ' + str(len(content)) + '\r\n' + \
             'Content-Type: ' + request_parser.contentType + '\r\n'
