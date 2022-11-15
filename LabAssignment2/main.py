@@ -97,30 +97,27 @@ def checkAccess(file, directory):
 def get_file(file, directory):
 
   files_list = checkAccess(file, directory) 
- 
+  STATUS_CODE =''
 
-  if len(files_list) >0:
-    if os.path.isfile(file):
-      try:
-        print("Attempting to read files from the directory...\n")
-        with open(directory + '/' + file, 'r') as f:
-          response_string = f.read()
-          STATUS_CODE = '200'
-          response_string = '[Success Code - 200]: '+response_string   
-
-      # except FileNotFoundError as e:
-      #   STATUS_CODE = '404'
-      #   response_string = '[Error Code - 404]: ' + f'Unable to find file in the directory {directory}'
-      #   print(e)
- 
-      finally:
-        print("Finished attempting to read the files....")
-    else:
-      STATUS_CODE = '404'
+  if os.path.isfile(file):
+    try:
+      print("Attempting to read files from the directory...\n")
+      with open(directory + '/' + file, 'r') as f:
+        response_string = f.read()
+         
+    except IOError as e:
+      print(e)
+      STATUS_CODE = '400'
       response_string = '[Error Code - 404]: ' + f'Unable to find file in the directory {directory}'
-
-    STATUS_CODE = STATUS_CODE
-      
+    else:
+      STATUS_CODE = '200'
+      response_string = f'[Success Code - 200]: Successfully got \'{file}\''  
+ 
+    finally:
+        print("Finished attempting to read the files....")
+  else:
+    STATUS_CODE = '404'
+    response_string = '[Error Code - 404]: ' + f'Unable to find file in the directory {directory}'      
 
   return response_string, STATUS_CODE
 
