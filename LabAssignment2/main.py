@@ -106,19 +106,19 @@ def get_file(file, directory):
         with open(directory + '/' + file, 'r') as f:
           response_string = f.read()
           STATUS_CODE = '200'
-          response_string = '[Success Code - 200]: '+response_string
+          response_string = '[Success Code - 200]: '+response_string   
 
       except FileNotFoundError as e:
         STATUS_CODE = '404'
-        response_string = '[Error Code - 404]: ' + f'Unable to find file in the {directory}'
+        response_string = '[Error Code - 404]: ' + f'Unable to find file in the directory {directory}'
         print(e)
 
-      
-      finally:
-        print("Finished attempting to read the files....")
+ 
+      # finally:
+      #   print("Finished attempting to read the files....")
 
+    STATUS_CODE = STATUS_CODE
       
-
 
   return response_string, STATUS_CODE
 
@@ -314,9 +314,10 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
             STATUS_CODE = '200'
             body_output['files'] = response_body
         elif request_parser.operation == GET_FILE:
-            if FileNotFoundError:
+            if STATUS_CODE == '404' and FileNotFoundError:
                 STATUS_CODE = '404'
                 body_output['Error'] = response_body
+                
             else:
                 STATUS_CODE = '200'
                 body_output['content'] = response_body
@@ -329,11 +330,11 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
             STATUS_CODE = '200'
             body_output['data'] = response_body
         elif request_parser.operation == POST_FILE:
-            if FileNotFoundError:
+            if STATUS_CODE == '404':
                 STATUS_CODE = '404'
                 body_output['Error'] = response_body
             
-            elif IOError:
+            elif STATUS_CODE == '400':
               STATUS_CODE = '400'
               body_output['Error'] = response_body
 
