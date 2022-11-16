@@ -254,7 +254,7 @@ def handle_client(conn, addr, directory):
     print(f'Client response received is " \n{client_response}')
 
 
-    split_response = HttpRequestParser(client_response)
+    split_response = splitRequest(client_response)
 
     server_response = _get_response(split_response, directory)
     
@@ -283,7 +283,7 @@ def _get_response(request_parser, dir_path):
             response = _generate_full_response_by_type(request_parser,files_list, status_code)
         # Get File Content
         elif OPERATION == GET_FILE:
-            array = get_file(request_parser.fileName, dir_path)
+            array = get_file(FILE, dir_path)
             file_content = array[0]
             status_code = array[1]
             response = _generate_full_response_by_type(request_parser, file_content, status_code)
@@ -297,7 +297,7 @@ def _get_response(request_parser, dir_path):
 
         # Post /bar
         elif OPERATION == POST_FILE:
-            array = post_file(request_parser.fileName, dir_path, DATA)
+            array = post_file(FILE, dir_path, DATA)
             content_response = array[0]
             status_code = array[1]
             response = _generate_full_response_by_type(request_parser, content_response, status_code)
