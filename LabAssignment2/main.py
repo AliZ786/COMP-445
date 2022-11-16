@@ -7,6 +7,7 @@ import socket
 import threading
 import json
 from HttpServer import HttpRequestParser, FileOperation
+#from FileManager import FileManager
 
 ## Global variables for the program
 RESPONSE_STRING = ''
@@ -113,6 +114,11 @@ def get_file(file, directory):
        STATUS_CODE = '404'
        response_string = '[Error Code - 404]: ' + f'Unable to find file in the directory {directory}'
 
+    except FileNotFoundError:
+       STATUS_CODE = '404'
+       response_string = '[Error Code - 404]: ' + f'Unable to find file in the directory {directory}'
+
+
     finally:
       print("Finished attempting to read")
         
@@ -149,25 +155,25 @@ def post_file(file, directory, content):
   return response_string, STATUS_CODE
 
   
-# def splitRequest(request):
-#   content_type = 'application/json'
+def splitRequest(request):
+  content_type = 'application/json'
 
-#   header, request_response = request.split('\r\n\r\n')
+  header, request_response = request.split('\r\n\r\n')
 
-#   header_arr = header.split('\r\n')
+  header_arr = header.split('\r\n')
 
-#   method, request_string, http_version = header_arr[0].split(' ')
+  method, request_string, http_version = header_arr[0].split(' ')
 
-#   for string in header_arr[1:]:
-#     if re.match(r'Content-Type', string):
-#       content_type = string.split(':')[1]
+  for string in header_arr[1:]:
+    if re.match(r'Content-Type', string):
+      content_type = string.split(':')[1]
     
-#     elif re.match(r'Content-Disposition', string):
-#       data = checkRequest('dowload')
-#       if re.match(r'/(.+)', request_string):
-#         file = request_string[1:]
+    elif re.match(r'Content-Disposition', string):
+      data = DOWNLOAD
+      if re.match(r'/(.+)', request_string):
+        file = request_string[1:]
 
-#   callRequest()
+  callRequest()
 
 # def callRequest():
 
@@ -267,59 +273,61 @@ def _get_response(request_parser, dir_path):
 
         # Basic GET
         if request_parser.operation == GET:
-            response = _generate_full_response_by_type(request_parser, request_parser.param)
+            response = _generate_full_response_by_type(request_parser, request_parser.param, '200')
         # GET file list
         elif request_parser.operation == GET_FILES:    
             # return a list of current files in the data directory
-            files_list = get_all_files(dir_path)
+            array = get_all_files(dir_path)
+            files_list = array[0]
+            status_code = array[1]
             
             print(f'files list is : {files_list}')
-            response = _generate_full_response_by_type(request_parser,files_list)
+            response = _generate_full_response_by_type(request_parser,files_list, status_code)
         # Get File Content
         elif request_parser.operation == GET_FILE:
-            file_content = get_file(request_parser.fileName, dir_path)
-            response = _generate_full_response_by_type(request_parser, file_content)
+            array = get_file(request_parser.fileName, dir_path)
+            file_content = array[0]
+            status_code = array[1]
+            response = _generate_full_response_by_type(request_parser, file_content, status_code)
         # Get Download
         elif request_parser.operation == DOWNLOAD:
             file_content = "Save me!"
-            response = _generate_full_response_by_type(request_parser, file_content)
+            response = _generate_full_response_by_type(request_parser, file_content, '200')
         # Post Resource
         elif request_parser.operation == POST:
-            response = _generate_full_response_by_type(request_parser, request_parser.data)
+            response = _generate_full_response_by_type(request_parser, request_parser.data, '200')
 
         # Post /bar
         elif request_parser.operation == POST_FILE:
-            content_response = post_file(request_parser.fileName, dir_path, request_parser.data)
-            response = _generate_full_response_by_type(request_parser, content_response)
+            array = post_file(request_parser.fileName, dir_path, request_parser.data)
+            content_response = array[0]
+            status_code = array[1]
+            response = _generate_full_response_by_type(request_parser, content_response, status_code)
         # operation is invalid
         else:
-            response = _generate_full_response_by_type(request_parser, 'Invalid Request')
+            response = _generate_full_response_by_type(request_parser, 'Invalid Request', '400')
 
         return response
     
 
-def _generate_full_response_by_type(request_parser, response_body):
+def _generate_full_response_by_type(request_parser, response_body, status_code):
         # default return JSON format of response body
         body_output = {}
         status_message = ''
-        STATUS_CODE = ''
+        STATUS_CODE = status_code
         # GET Methods
-        # if request_parser.operation == GET:
-        #     body_output['args'] = request_parser.param
-        #     STATUS_CODE = '200'
-        
-        if request_parser.operation == GET_FILE:
-          
-          if STATUS_CODE == '200':
-            body_output['content'] = response_body
-            STATUS_CODE = '200'
-            sys.exit(1)
-
-          elif STATUS_CODE != '200' or STATUS_CODE == '404':
+        if request_parser.operation == GET:
+          body_output['args'] = request_parser.param
+          STATUS_CODE = '200'  
+        elif request_parser.operation == GET_FILE:
+          if STATUS_CODE == '400':
+            STATUS_CODE = '400'
+            body_output['Error'] = response_body
+          elif STATUS_CODE == '404':
             STATUS_CODE = '404'
             body_output['Error'] = response_body
-   
-
+          else:
+            body_output['content'] = response_body
         elif request_parser.operation == GET_FILES:
             STATUS_CODE = '200'
             body_output['files'] = response_body
@@ -452,13 +460,4 @@ def main():
     print("\nGOODBYE")
     sys.exit(0)
 
-
-
-
-
 main()
-    
-
-
-
-
