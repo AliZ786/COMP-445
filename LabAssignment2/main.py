@@ -12,6 +12,7 @@ from HttpServer import HttpRequestParser, FileOperation
 ## Global variables for the program
 RESPONSE_STRING = ''
 METHOD = ''
+OPERATION = ''
 DATA = ''
 HEADER = ''
 REQUEST_STRING = ''
@@ -156,30 +157,32 @@ def post_file(file, directory, content):
 
   
 def splitRequest(request):
-  content_type = 'application/json'
+  global CONTENT_TYPE, HEADER, FILE, METHOD, OPERATION, request_response
+  CONTENT_TYPE = 'application/json'
 
-  header, request_response = request.split('\r\n\r\n')
 
-  header_arr = header.split('\r\n')
+  HEADER, request_response = request.split('\r\n\r\n')
 
-  method, request_string, http_version = header_arr[0].split(' ')
+  header_arr = HEADER.split('\r\n')
+
+  METHOD, request_string, http_version = header_arr[0].split(' ')
 
   for string in header_arr[1:]:
     if re.match(r'Content-Type', string):
-      content_type = string.split(':')[1]
+      CONTENT_TYPE = string.split(':')[1]
     
     elif re.match(r'Content-Disposition', string):
-      data = DOWNLOAD
+      OPERATION = DOWNLOAD
       if re.match(r'/(.+)', request_string):
-        file = request_string[1:]
+        FILE = request_string[1:]
 
-  callRequest()
+  #callRequest()
 
 # def callRequest():
 
 #   data = ''
 #   file_content = ''
-#   if method == "GET":
+#   if method == "GET" and operation != DOWNLOAD:
 #     if re.match(r'/get', request_string):
 #       if request_string in ['/get', '/get?']:
 #         temp_string = ''
