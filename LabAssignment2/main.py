@@ -250,7 +250,7 @@ def runClient(conn, addr, directory):
 
     split_response = splitRequest(client_response)
 
-    server_response = _get_response(split_response, directory)
+    server_response = processRequest(split_response, directory)
     
     conn.sendall(server_response.encode('utf-8'))
 
@@ -258,7 +258,7 @@ def runClient(conn, addr, directory):
     conn.close()
     print(f'Client with the address number {addr} has been disconnected')
     
-def _get_response(request_parser, dir_path):
+def processRequest(response, dir_path):
         # A file manager
         response = "HTTP1.0/ 404 Not Found\r\nContext-Type: application/json\r\n\r\nNo Response"
         # GET request
@@ -382,7 +382,7 @@ def returnRequest(response_body, status_code):
         response_header += 'Connection: close' + '\r\n\r\n'
         full_response = response_header + content
 
-        print(f'Server send Response to client:\n{full_response}')
+        print(f'Response sent to the server would be: \n{full_response}')
 
         return full_response
 
