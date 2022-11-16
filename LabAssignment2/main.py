@@ -11,6 +11,7 @@ from HttpServer import HttpRequestParser, FileOperation
 
 ## Global variables for the program
 RESPONSE_STRING = ''
+BODY = ''
 METHOD = ''
 OPERATION = ''
 DATA = ''
@@ -33,16 +34,8 @@ GET_FILE = 2
 POST = 3
 DOWNLOAD = 4
 POST_FILE = 5
+INVALID = 6
 STATUS_CODE = '404'
-
-## to be integrated later
-RESPONSE_PROTOCOL = 'HTTP/1.1'.encode('utf-8')
-RESPONSE_STATUS_OK = '200'.encode('utf-8')
-RESPONSE_STATUS_OK_TEXT = 'OK'.encode('utf-8')
-RESPONSE_STATUS_BAD_REQUEST = '400'.encode('utf-8')
-RESPONSE_STATUS_BAD_REQUEST_TEXT = 'Bad Request'.encode('utf-8')
-RESPONSE_STATUS_NOT_FOUND = '404'.encode('utf-8')
-RESPONSE_STATUS_NOT_FOUND_TEXT = 'Not Found'.encode('utf-8')
 
 
 ## Argparse commands
@@ -157,15 +150,15 @@ def post_file(file, directory, content):
 
   
 def splitRequest(request):
-  global CONTENT_TYPE, HEADER, FILE, METHOD, OPERATION, request_response
+  global CONTENT_TYPE, HEADER, FILE, METHOD, OPERATION, BODY, RESOURCE, http_version
   CONTENT_TYPE = 'application/json'
 
 
-  HEADER, request_response = request.split('\r\n\r\n')
+  HEADER, BODY = request.split('\r\n\r\n')
 
   header_arr = HEADER.split('\r\n')
 
-  METHOD, request_string, http_version = header_arr[0].split(' ')
+  METHOD, RESOURCE, http_version = header_arr[0].split(' ')
 
   for string in header_arr[1:]:
     if re.match(r'Content-Type', string):
@@ -173,55 +166,55 @@ def splitRequest(request):
     
     elif re.match(r'Content-Disposition', string):
       OPERATION = DOWNLOAD
-      if re.match(r'/(.+)', request_string):
-        FILE = request_string[1:]
+      if re.match(r'/(.+)', RESOURCE):
+        FILE = RESOURCE[1:]
 
-  #callRequest()
+  callRequest()
 
-# def callRequest():
 
-#   data = ''
-#   file_content = ''
-#   if method == "GET" and operation != DOWNLOAD:
-#     if re.match(r'/get', request_string):
-#       if request_string in ['/get', '/get?']:
-#         temp_string = ''
+
+def callRequest():
+  global OPERATION, METHOD, RESOURCE, PARAM, FILE, BODY, DATA
+  
+  if METHOD == "GET" and OPERATION != DOWNLOAD:
+    if re.match(r'/get', RESOURCE):
+      if RESOURCE in ['/get', '/get?']:
+        PARAM = ''
       
-#       else:
-#         temp_location = request_string.split('?')[-1]
-#         characters = {}
-#         for item in temp_location.split('&'):
-#           key, value = item.split('=')
-#           characters[key] = value
-        
-#         temp_string = characters
-
-#       data = checkRequest("defaultGet")
-    
-#     elif request_string == '/':
-#       data = checkRequest('getFiles')
-    
-#     elif re.match(r'/(.+)', request_string):
-#       data = checkRequest('getFile')
-#       file = request_string[1:]
+      else:
+        temp_location = RESOURCE.split('?')[-1]
+        characters = {}
+        for item in temp_location.split('&'):
+          key, value = item.split('=')
+          characters[key] = value
       
-#     else:
-#       data = checkRequest('invalid')
-
-#   elif method == "POST":
-#     if request_string == '/post':
-#        file_content = request_response
-#        data = checkRequest('defaultPost')
+        PARAM = characters
+      OPERATION = GET
     
-#     elif re.match(r'/(.+)', request_string):
-#       data = checkRequest('postFile')
-#       file_content = request_response
-#       file = request_string[1:]
+    elif RESOURCE == '/':
+      OPERATION = GET_FILES
+    
+    elif re.match(r'/(.+)', RESOURCE):
+      OPERATION = GET_FILE
+      FILE = RESOURCE[1:]
+      
+    else:
+      OPERATION =  INVALID
 
-#   else:
-#     file = checkRequest('invalid')
-
-#   return data, file, file_content
+  elif METHOD == "POST":
+    if RESOURCE == '/post':
+       DATA = BODY
+       OPERATION = POST
+    
+    else:
+      if re.match(r'/(.+)', RESOURCE):
+        OPERATION = POST_FILE
+        DATA = BODY
+        FILE = RESOURCE[1:]
+      else:
+        OPERATION = INVALID
+  else:
+    OPERATION = INVALID
 
 def runServer(host, port, directory):
   listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
