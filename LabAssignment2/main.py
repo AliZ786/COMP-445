@@ -174,7 +174,7 @@ def splitRequest(request):
 
 
 def callRequest():
-  global OPERATION, METHOD, RESOURCE, PARAM, FILE, BODY, DATA
+  global OPERATION, METHOD, RESOURCE, PARAM, FILE, BODY, DATA, DOWNLOAD
   
   if METHOD == "GET" and OPERATION != DOWNLOAD:
     if re.match(r'/get', RESOURCE):
@@ -213,6 +213,8 @@ def callRequest():
         FILE = RESOURCE[1:]
       else:
         OPERATION = INVALID
+  elif OPERATION == DOWNLOAD:
+    pass
   else:
     OPERATION = INVALID
 
