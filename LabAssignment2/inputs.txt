@@ -1,0 +1,17 @@
+GET STATEMENTS:
+curl 'http://localhost:8080/'
+curl -v 'http://localhost:8080/foo' 
+
+
+
+POST STATEMENTS:
+
+curl 'http://localhost:8080/bar'  -d '{"Assignment": 2}'
+
+
+CONTENT-TYPE: 
+curl -H Content-Type:text/plain 'http://localhost:8080/'
+
+
+CONTENT-DISPOSITION: 
+curl -v -H Content-Disposition:inline 'http://localhost:8080/download'
