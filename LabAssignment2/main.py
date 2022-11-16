@@ -7,7 +7,6 @@ import socket
 import threading
 import json
 from HttpServer import HttpRequestParser, FileOperation
-from FileManager import FileManager
 
 ## Global variables for the program
 RESPONSE_STRING = ''
@@ -98,20 +97,26 @@ def get_file(file, directory):
 
   files_list = checkAccess(file, directory) 
   STATUS_CODE =''
+  response_string = ''
 
-  if os.path.isfile(file):
+  if file in files_list:
     try:
       print("Attempting to read files from the directory...\n")
-      with open(directory + '/' + file, 'r') as f:
+      with open(directory + '/' + file, 'r', errors = 'ignore') as f:
         response_string = f.read()
-      STATUS_CODE = '200'
-      response_string = f'[Success Code - 200]: Successfully got \'{file}\''  
- 
+     
+      if response_string is not None:
+       STATUS_CODE = '200'
+       response_string = f'[Success Code - 200]: Successfully got \'{file}\''  
+
+      else:
+       STATUS_CODE = '404'
+       response_string = '[Error Code - 404]: ' + f'Unable to find file in the directory {directory}'
+
     finally:
-        print("Finished attempting to read the files....")
-  else:
-    STATUS_CODE = '404'
-    response_string = '[Error Code - 404]: ' + f'Unable to find file in the directory {directory}'      
+      print("Finished attempting to read")
+        
+  
 
   return response_string, STATUS_CODE
 
@@ -257,63 +262,68 @@ def handle_client(conn, addr, directory):
     
 def _get_response(request_parser, dir_path):
         # A file manager
-        file_manager = FileManager()
         response = "HTTP1.0/ 404 Not Found\r\nContext-Type: application/json\r\n\r\nNo Response"
         # GET request
 
         # Basic GET
         if request_parser.operation == GET:
-            response = _generate_full_response_by_type(request_parser, request_parser.param, file_manager)
+            response = _generate_full_response_by_type(request_parser, request_parser.param)
         # GET file list
         elif request_parser.operation == GET_FILES:    
             # return a list of current files in the data directory
             files_list = get_all_files(dir_path)
             
             print(f'files list is : {files_list}')
-            response = _generate_full_response_by_type(request_parser,files_list,file_manager)
+            response = _generate_full_response_by_type(request_parser,files_list)
         # Get File Content
         elif request_parser.operation == GET_FILE:
             file_content = get_file(request_parser.fileName, dir_path)
-            response = _generate_full_response_by_type(request_parser, file_content, file_manager)
+            response = _generate_full_response_by_type(request_parser, file_content)
         # Get Download
         elif request_parser.operation == DOWNLOAD:
             file_content = "Save me!"
-            response = _generate_full_response_by_type(request_parser, file_content, file_manager)
+            response = _generate_full_response_by_type(request_parser, file_content)
         # Post Resource
         elif request_parser.operation == POST:
-            response = _generate_full_response_by_type(request_parser, request_parser.data, file_manager)
+            response = _generate_full_response_by_type(request_parser, request_parser.data)
 
         # Post /bar
         elif request_parser.operation == POST_FILE:
             content_response = post_file(request_parser.fileName, dir_path, request_parser.data)
-            response = _generate_full_response_by_type(request_parser, content_response, file_manager)
+            response = _generate_full_response_by_type(request_parser, content_response)
         # operation is invalid
         else:
-            response = _generate_full_response_by_type(request_parser, 'Invalid Request', file_manager)
+            response = _generate_full_response_by_type(request_parser, 'Invalid Request')
 
         return response
     
 
-def _generate_full_response_by_type(request_parser, response_body, file_manager):
+def _generate_full_response_by_type(request_parser, response_body):
         # default return JSON format of response body
         body_output = {}
         status_message = ''
         STATUS_CODE = ''
         # GET Methods
-        if request_parser.operation == GET:
-            body_output['args'] = request_parser.param
+        # if request_parser.operation == GET:
+        #     body_output['args'] = request_parser.param
+        #     STATUS_CODE = '200'
+        
+        if request_parser.operation == GET_FILE:
+          
+          if STATUS_CODE == '200':
+            body_output['content'] = response_body
             STATUS_CODE = '200'
+            sys.exit(1)
+
+          elif STATUS_CODE != '200' or STATUS_CODE == '404':
+            STATUS_CODE = '404'
+            body_output['Error'] = response_body
+   
+
         elif request_parser.operation == GET_FILES:
             STATUS_CODE = '200'
             body_output['files'] = response_body
-        elif request_parser.operation == GET_FILE:
-            if STATUS_CODE == '404':
-                STATUS_CODE = '404'
-                body_output['Error'] = response_body
-                
-            else:
-                STATUS_CODE = '200'
-                body_output['content'] = response_body
+        
         # Download
         elif request_parser.operation == DOWNLOAD:
             STATUS_CODE = '200'
@@ -335,7 +345,7 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
                 STATUS_CODE = '200'
                 body_output['Info'] = response_body
         # Check Http Version
-        elif request_parser.version != 'HTTP/1.0':
+        elif request_parser.version != 'HTTP/1.1':
             # 505 : HTTP Version Not Support
             STATUS_CODE = '505'
         else:
@@ -343,6 +353,7 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
         content = json.dumps(body_output)
 
         STATUS_CODE = STATUS_CODE
+        print(STATUS_CODE)
 
         if STATUS_CODE == '200':
           status_message = ':OK'
@@ -368,7 +379,7 @@ def _generate_full_response_by_type(request_parser, response_body, file_manager)
             'Content-Length: ' + str(len(content)) + '\r\n' + \
             'Content-Type: ' + request_parser.contentType + '\r\n'
         # Content-Disposition
-        if request_parser.operation == FileOperation.Download:
+        if request_parser.operation == DOWNLOAD:
             response_header += f'Content-Disposition: attachment; filename={request_parser.fileName} \r\n'
         response_header += 'Connection: close' + '\r\n\r\n'
         full_response = response_header + content
