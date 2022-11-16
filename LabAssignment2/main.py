@@ -268,10 +268,10 @@ def _get_response(request_parser, dir_path):
         # GET request
 
         # Basic GET
-        if request_parser.operation == GET:
-            response = _generate_full_response_by_type(request_parser, request_parser.param, '200')
+        if OPERATION == GET:
+            response = _generate_full_response_by_type(request_parser, PARAM, '200')
         # GET file list
-        elif request_parser.operation == GET_FILES:    
+        elif OPERATION == GET_FILES:    
             # return a list of current files in the data directory
             array = get_all_files(dir_path)
             files_list = array[0]
@@ -280,22 +280,22 @@ def _get_response(request_parser, dir_path):
             print(f'files list is : {files_list}')
             response = _generate_full_response_by_type(request_parser,files_list, status_code)
         # Get File Content
-        elif request_parser.operation == GET_FILE:
+        elif OPERATION == GET_FILE:
             array = get_file(request_parser.fileName, dir_path)
             file_content = array[0]
             status_code = array[1]
             response = _generate_full_response_by_type(request_parser, file_content, status_code)
         # Get Download
-        elif request_parser.operation == DOWNLOAD:
+        elif OPERATION == DOWNLOAD:
             file_content = "Save me!"
             response = _generate_full_response_by_type(request_parser, file_content, '200')
         # Post Resource
-        elif request_parser.operation == POST:
-            response = _generate_full_response_by_type(request_parser, request_parser.data, '200')
+        elif OPERATION == POST:
+            response = _generate_full_response_by_type(request_parser, DATA, '200')
 
         # Post /bar
-        elif request_parser.operation == POST_FILE:
-            array = post_file(request_parser.fileName, dir_path, request_parser.data)
+        elif OPERATION == POST_FILE:
+            array = post_file(request_parser.fileName, dir_path, DATA)
             content_response = array[0]
             status_code = array[1]
             response = _generate_full_response_by_type(request_parser, content_response, status_code)
@@ -312,10 +312,10 @@ def _generate_full_response_by_type(request_parser, response_body, status_code):
         status_message = ''
         STATUS_CODE = status_code
         # GET Methods
-        if request_parser.operation == GET:
-          body_output['args'] = request_parser.param
+        if OPERATION == GET:
+          body_output['args'] = PARAM
           STATUS_CODE = '200'  
-        elif request_parser.operation == GET_FILE:
+        elif OPERATION == GET_FILE:
           if STATUS_CODE == '400':
             STATUS_CODE = '400'
             body_output['Error'] = response_body
@@ -324,19 +324,19 @@ def _generate_full_response_by_type(request_parser, response_body, status_code):
             body_output['Error'] = response_body
           else:
             body_output['content'] = response_body
-        elif request_parser.operation == GET_FILES:
+        elif OPERATION == GET_FILES:
             STATUS_CODE = '200'
             body_output['files'] = response_body
         
         # Download
-        elif request_parser.operation == DOWNLOAD:
+        elif OPERATION == DOWNLOAD:
             STATUS_CODE = '200'
             body_output['Download Info'] = response_body
         # POST methods
-        elif request_parser.operation == POST:
+        elif OPERATION == POST:
             STATUS_CODE = '200'
             body_output['data'] = response_body
-        elif request_parser.operation == POST_FILE:
+        elif OPERATION == POST_FILE:
             if STATUS_CODE == '404':
                 STATUS_CODE = '404'
                 body_output['Error'] = response_body
@@ -349,7 +349,7 @@ def _generate_full_response_by_type(request_parser, response_body, status_code):
                 STATUS_CODE = '200'
                 body_output['Info'] = response_body
         # Check Http Version
-        elif request_parser.version != 'HTTP/1.1':
+        elif http_version != 'HTTP/1.1':
             # 505 : HTTP Version Not Support
             STATUS_CODE = '505'
         else:
@@ -378,13 +378,13 @@ def _generate_full_response_by_type(request_parser, response_body, status_code):
         print(STATUS_CODE)
 
 
-        response_header = request_parser.version + ' ' + str(STATUS_CODE) + ' ' + \
+        response_header = http_version + ' ' + str(STATUS_CODE) + ' ' + \
             status_message + '\r\n' + \
             'Content-Length: ' + str(len(content)) + '\r\n' + \
-            'Content-Type: ' + request_parser.contentType + '\r\n'
+            'Content-Type: ' + CONTENT_TYPE + '\r\n'
         # Content-Disposition
-        if request_parser.operation == DOWNLOAD:
-            response_header += f'Content-Disposition: attachment; filename={request_parser.fileName} \r\n'
+        if OPERATION == DOWNLOAD:
+            response_header += f'Content-Disposition: attachment; filename={FILE} \r\n'
         response_header += 'Connection: close' + '\r\n\r\n'
         full_response = response_header + content
 
