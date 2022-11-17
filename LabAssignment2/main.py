@@ -1,7 +1,5 @@
 import os
 import re
-import sys
-import cmd
 import argparse
 import socket
 import threading
@@ -9,14 +7,11 @@ import json
 
 
 ## Global variables for the program
-RESPONSE_STRING = ''
 BODY = ''
 METHOD = ''
 OPERATION = ''
 DATA = ''
 HEADER = ''
-REQUEST_STRING = ''
-REQUEST_RESPONSE = ''
 CONTENT_TYPE = ''
 HTTP_VERSION = '1.1'
 FILE = ''
@@ -51,7 +46,7 @@ def get_All_Files(directory):
   files_list = []
   STATUS_CODE = ''
 
-  for root, dirs, files in os.walk(directory):
+  for root, files in os.walk(directory):
     for file in files:
       location = root + '/' + file
       files_list.append(location[(len(directory) +1):])
@@ -259,132 +254,132 @@ def runClient(conn, addr, directory):
     print(f'Client with the address number {addr} has been disconnected')
     
 def processRequest(response, dir_path):
-        # A file manager
-        response = "HTTP1.0/ 404 Not Found\r\nContext-Type: application/json\r\n\r\nNo Response"
-        # GET request
+  # A file manager
+  response = "HTTP1.0/ 404 Not Found\r\nContext-Type: application/json\r\n\r\nNo Response"
+  # GET request
 
-        # Basic GET
-        if OPERATION == GET:
-            response = returnRequest(PARAM, '200')
-        # GET file list
-        elif OPERATION == GET_FILES:    
-            # return a list of current files in the data directory
-            array = get_All_Files(dir_path)
-            files_list = array[0]
-            status_code = array[1]
+  # Basic GET
+  if OPERATION == GET:
+    response = returnRequest(PARAM, '200')
+  # GET file list
+  elif OPERATION == GET_FILES:    
+  # return a list of current files in the data directory
+    array = get_All_Files(dir_path)
+    files_list = array[0]
+    status_code = array[1]
             
-            print(f'files list is : {files_list}')
-            response = returnRequest(files_list, status_code)
-        # Get File Content
-        elif OPERATION == GET_FILE:
-            array = get_file(FILE, dir_path)
-            file_content = array[0]
-            status_code = array[1]
-            response = returnRequest(file_content, status_code)
-        # Get Download
-        elif OPERATION == DOWNLOAD:
-            file_content = "Save me!"
-            response = returnRequest(file_content, '200')
-        # Post Resource
-        elif OPERATION == POST:
-            response = returnRequest(DATA, '200')
+    print(f'files list is : {files_list}')
+    response = returnRequest(files_list, status_code)
+  # Get File Content
+  elif OPERATION == GET_FILE:
+    array = get_file(FILE, dir_path)
+    file_content = array[0]
+    status_code = array[1]
+    response = returnRequest(file_content, status_code)
+  # Get Download
+  elif OPERATION == DOWNLOAD:
+    file_content = "Save me!"
+    response = returnRequest(file_content, '200')
+  # Post Resource
+  elif OPERATION == POST:
+    response = returnRequest(DATA, '200')
 
-        # Post /bar
-        elif OPERATION == POST_FILE:
-            array = post_file(FILE, dir_path, DATA)
-            content_response = array[0]
-            status_code = array[1]
-            response = returnRequest(content_response, status_code)
-        # operation is invalid
-        else:
-            response = returnRequest('Invalid Request', '400')
+  # Post /bar
+  elif OPERATION == POST_FILE:
+    array = post_file(FILE, dir_path, DATA)
+    content_response = array[0]
+    status_code = array[1]
+    response = returnRequest(content_response, status_code)
+  # operation is invalid
+  else:
+    response = returnRequest('Invalid Request', '400')
 
-        return response
+  return response
     
 
 def returnRequest(response_body, status_code):
-        # default return JSON format of response body
-        body_output = {}
-        status_message = ''
-        STATUS_CODE = status_code
+  # default return JSON format of response body
+  body_output = {}
+  status_message = ''
+  STATUS_CODE = status_code
 
-        # GET Methods
-        if OPERATION == GET:
-          body_output['args'] = PARAM
-          STATUS_CODE = '200'  
-        elif OPERATION == GET_FILE:
-          if STATUS_CODE == '400':
-            STATUS_CODE = '400'
-            body_output['Error'] = response_body
-          elif STATUS_CODE == '404':
-            STATUS_CODE = '404'
-            body_output['Error'] = response_body
-          else:
-            body_output['content'] = response_body
-        elif OPERATION == GET_FILES:
-            STATUS_CODE = '200'
-            body_output['files'] = response_body
+  # GET Methods
+  if OPERATION == GET:
+    body_output['args'] = PARAM
+    STATUS_CODE = '200'  
+  elif OPERATION == GET_FILE:
+    if STATUS_CODE == '400':
+      STATUS_CODE = '400'
+      body_output['Error'] = response_body
+    elif STATUS_CODE == '404':
+      STATUS_CODE = '404'
+      body_output['Error'] = response_body
+    else:
+      body_output['content'] = response_body
+  elif OPERATION == GET_FILES:
+    STATUS_CODE = '200'
+    body_output['files'] = response_body
         
-        elif OPERATION == DOWNLOAD:
-            STATUS_CODE = '200'
-            body_output['Download Info'] = response_body
+  elif OPERATION == DOWNLOAD:
+    STATUS_CODE = '200'
+    body_output['Download Info'] = response_body
 
-        elif OPERATION == POST:
-            STATUS_CODE = '200'
-            body_output['data'] = response_body
-        elif OPERATION == POST_FILE:
-            if STATUS_CODE == '404':
-                STATUS_CODE = '404'
-                body_output['Error'] = response_body
+  elif OPERATION == POST:
+    STATUS_CODE = '200'
+    body_output['data'] = response_body
+  elif OPERATION == POST_FILE:
+    if STATUS_CODE == '404':
+      STATUS_CODE = '404'
+      body_output['Error'] = response_body
             
-            elif STATUS_CODE == '400':
-              STATUS_CODE = '400'
-              body_output['Error'] = response_body
+    elif STATUS_CODE == '400':
+      STATUS_CODE = '400'
+      body_output['Error'] = response_body
 
-            else:
-                STATUS_CODE = '200'
-                body_output['Info'] = response_body
-        # Check Http Version
-        elif HTTP_VERSION != 'HTTP/1.1':
-            # 505 : HTTP Version Not Support
-            STATUS_CODE = '505'
-        else:
-            body_output['Invalid'] = response_body
-        content = json.dumps(body_output)
+    else:
+      STATUS_CODE = '200'
+      body_output['Info'] = response_body
+  # Check Http Version
+  elif HTTP_VERSION != 'HTTP/1.1':
+  # 505 : HTTP Version Not Support
+    STATUS_CODE = '505'
+  else:
+    body_output['Invalid'] = response_body
+  content = json.dumps(body_output)
 
-        STATUS_CODE = STATUS_CODE
+  STATUS_CODE = STATUS_CODE
 
-        if STATUS_CODE == '200':
-          status_message = ':OK'
+  if STATUS_CODE == '200':
+    status_message = ':OK'
 
-        elif STATUS_CODE == '301':
-          status_message = ':Moved Permanently'
+  elif STATUS_CODE == '301':
+    status_message = ':Moved Permanently'
 
-        elif STATUS_CODE == '400':
-          status_message = ':Bad Request'
+  elif STATUS_CODE == '400':
+    status_message = ':Bad Request'
 
-        elif STATUS_CODE == '404':
-          status_message = ':Not Found'
+  elif STATUS_CODE == '404':
+    status_message = ':Not Found'
 
-        elif STATUS_CODE == '505':
-          status_message = ':HTTP Version Not Support'
+  elif STATUS_CODE == '505':
+    status_message = ':HTTP Version Not Support'
 
         
 
 
-        response_header = HTTP_VERSION + ' ' + str(STATUS_CODE) + ' ' + \
-            status_message + '\r\n' + \
-            'Content-Length: ' + str(len(content)) + '\r\n' + \
-            'Content-Type: ' + CONTENT_TYPE + '\r\n'
-        # Content-Disposition
-        if OPERATION == DOWNLOAD:
-            response_header += f'Content-Disposition: attachment; filename={FILE} \r\n'
-        response_header += 'Connection: close' + '\r\n\r\n'
-        full_response = response_header + content
+  response_header = HTTP_VERSION + ' ' + str(STATUS_CODE) + ' ' + \
+    status_message + '\r\n' + \
+    'Content-Length: ' + str(len(content)) + '\r\n' + \
+    'Content-Type: ' + CONTENT_TYPE + '\r\n'
+  # Content-Disposition
+  if OPERATION == DOWNLOAD:
+     response_header += f'Content-Disposition: attachment; filename={FILE} \r\n'
+  response_header += 'Connection: close' + '\r\n\r\n'
+  full_response = response_header + content
 
-        print(f'Response sent to the server would be: \n{full_response}')
+  print(f'Response sent to the server would be: \n{full_response}')
 
-        return full_response
+  return full_response     
 
   
 
