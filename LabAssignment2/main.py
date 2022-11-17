@@ -314,49 +314,50 @@ def returnRequest(response_body, status_code):
   body_output = {}
   status_message = ''
   STATUS_CODE = status_code
+  MESSAGE_STRING = 'REQUESTED_RESPONSE'
+
 
   # GET Methods
   if CALLED_REQUEST == GET:
-    body_output['args'] = DEFAULT_GET
+    body_output[MESSAGE_STRING] = DEFAULT_GET
     STATUS_CODE = '200'  
   elif CALLED_REQUEST == GET_FILE:
     if STATUS_CODE == '400':
       STATUS_CODE = '400'
-      body_output['Error'] = response_body
+      body_output[MESSAGE_STRING] = response_body
     elif STATUS_CODE == '404':
       STATUS_CODE = '404'
-      body_output['Error'] = response_body
+      body_output[MESSAGE_STRING] = response_body
     else:
-      body_output['content'] = response_body
+      body_output[MESSAGE_STRING] = response_body
   elif CALLED_REQUEST == GET_FILES:
     STATUS_CODE = '200'
-    body_output['files'] = response_body
+    body_output[MESSAGE_STRING] = response_body
         
   elif CALLED_REQUEST == DOWNLOAD:
     STATUS_CODE = '200'
-    body_output['Download Info'] = response_body
+    body_output[MESSAGE_STRING] = response_body
 
   elif CALLED_REQUEST == POST:
     STATUS_CODE = '200'
-    body_output['data'] = response_body
+    body_output[MESSAGE_STRING] = response_body
   elif CALLED_REQUEST == POST_FILE:
     if STATUS_CODE == '404':
       STATUS_CODE = '404'
-      body_output['Error'] = response_body
+      body_output[MESSAGE_STRING] = response_body
             
     elif STATUS_CODE == '400':
       STATUS_CODE = '400'
-      body_output['Error'] = response_body
+      body_output[MESSAGE_STRING] = response_body
 
     else:
       STATUS_CODE = '200'
-      body_output['Info'] = response_body
-  # Check Http Version
+      body_output[MESSAGE_STRING] = response_body
+ 
   elif HTTP_VERSION != 'HTTP/1.1':
-  # 505 : HTTP Version Not Support
     STATUS_CODE = '505'
   else:
-    body_output['Invalid'] = response_body
+    body_output[MESSAGE_STRING] = response_body
   content = json.dumps(body_output)
 
   STATUS_CODE = STATUS_CODE
