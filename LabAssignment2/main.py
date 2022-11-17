@@ -46,7 +46,7 @@ def get_All_Files(directory):
   files_list = []
   STATUS_CODE = ''
 
-  for root, files in os.walk(directory):
+  for root, dirs, files in os.walk(directory):
     for file in files:
       location = root + '/' + file
       files_list.append(location[(len(directory) +1):])
