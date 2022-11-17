@@ -290,7 +290,7 @@ def processRequest(response, dir_path):
     response = returnRequest(file_content, status_code)
   # Get Download
   elif CALLED_REQUEST == DOWNLOAD:
-    file_content = "Save me!"
+    file_content = f"[Doing Content-Disposition]: Save me!"
     response = returnRequest(file_content, '200')
   # Post Resource
   elif CALLED_REQUEST == POST:
