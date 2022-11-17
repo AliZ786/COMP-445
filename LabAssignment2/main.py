@@ -46,6 +46,7 @@ def get_All_Files(directory):
   files_list = []
   STATUS_CODE = ''
   dir_list = []
+  RESPONSE_STRING = ''
 
   for root, dirs, files in os.walk(directory):
     for file in files:
@@ -55,16 +56,19 @@ def get_All_Files(directory):
     for i in range (len(dirs)):
       dir_list.append(dirs[i])
 
-
+    RESPONSE_STRING = f'The list of files in the directory {directory} are: {files_list}'
   
   print(f'List of directories in {directory}: {dir_list}')
 
+  
+
   STATUS_CODE = '200'
-  return files_list, STATUS_CODE 
+  return RESPONSE_STRING, STATUS_CODE 
 
 def check_Access(file, directory):
   files_list = []
   STATUS_CODE = ''
+  RESPONSE_STRING = ''
 
   if re.match(r'\.\.\/', file):
     STATUS_CODE - '400'
@@ -81,6 +85,9 @@ def check_Access(file, directory):
       directory = file.split('/')[-2]
 
     files_list =  get_All_Files(directory)
+
+    RESPONSE_STRING = (f'The list of files in the directory {directory} are: {files_list}')
+
 
   return files_list, file, directory, STATUS_CODE
 
@@ -274,8 +281,6 @@ def processRequest(response, dir_path):
     array = get_All_Files(dir_path)
     files_list = array[0]
     status_code = array[1]
-            
-    print(f'files list is : {files_list}')
     response = returnRequest(files_list, status_code)
   # Get File Content
   elif CALLED_REQUEST == GET_FILE:
