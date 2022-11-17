@@ -8,8 +8,8 @@ import json
 
 ## Global variables for the program
 BODY = ''
-METHOD = ''
-OPERATION = ''
+REQUEST_TYPE = ''
+CALLED_REQUEST = ''
 DATA = ''
 HEADER = ''
 CONTENT_TYPE = ''
@@ -45,14 +45,22 @@ args = parser.parse_args()
 def get_All_Files(directory):
   files_list = []
   STATUS_CODE = ''
+  dir_list = []
 
   for root, dirs, files in os.walk(directory):
     for file in files:
       location = root + '/' + file
       files_list.append(location[(len(directory) +1):])
-   
+
+    for i in range (len(dirs)):
+      dir_list.append(dirs[i])
+
+
+  
+  print(f'List of directories in {directory}: {dir_list}')
+
   STATUS_CODE = '200'
-  return files_list, STATUS_CODE
+  return files_list, STATUS_CODE 
 
 def check_Access(file, directory):
   files_list = []
@@ -138,7 +146,7 @@ def post_file(file, directory, content):
 
   
 def splitRequest(request):
-  global CONTENT_TYPE, HEADER, FILE, METHOD, OPERATION, BODY, RESOURCE, HTTP_VERSION
+  global CONTENT_TYPE, HEADER, FILE, REQUEST_TYPE, CALLED_REQUEST, BODY, REQUEST_STRING, HTTP_VERSION
   CONTENT_TYPE = 'application/json'
 
 
@@ -146,71 +154,70 @@ def splitRequest(request):
 
   header_arr = HEADER.split('\r\n')
 
-  METHOD, RESOURCE, HTTP_VERSION = header_arr[0].split(' ')
+  REQUEST_TYPE, REQUEST_STRING, HTTP_VERSION = header_arr[0].split(' ')
 
   for string in header_arr[1:]:
     if re.match(r'Content-Type', string):
       CONTENT_TYPE = string.split(':')[1]
     
     elif re.match(r'Content-Disposition', string):
-      OPERATION = DOWNLOAD
-      if re.match(r'/(.+)', RESOURCE):
-        FILE = RESOURCE[1:]
+      CALLED_REQUEST = DOWNLOAD
+      if re.match(r'/(.+)', REQUEST_STRING):
+        FILE = REQUEST_STRING[1:]
 
   callRequest()
 
 
 
 def callRequest():
-  global OPERATION, METHOD, RESOURCE, PARAM, FILE, BODY, DATA, DOWNLOAD
+  global CALLED_REQUEST, REQUEST_TYPE, REQUEST_STRING, DEFAULT_GET, FILE, BODY, DATA, DOWNLOAD
   
-  if METHOD == "GET" and OPERATION != DOWNLOAD:
-    if re.match(r'/get', RESOURCE):
-      if RESOURCE in ['/get', '/get?']:
-        PARAM = ''
+  if REQUEST_TYPE == "GET" and CALLED_REQUEST != DOWNLOAD:
+    if re.match(r'/get', REQUEST_STRING):
+      if REQUEST_STRING in ['/get', '/get?']:
+        DEFAULT_GET = ''
       
       else:
-        temp_location = RESOURCE.split('?')[-1]
+        temp_location = REQUEST_STRING.split('?')[-1]
         characters = {}
         for item in temp_location.split('&'):
           key, value = item.split('=')
           characters[key] = value
       
-        PARAM = characters
-      OPERATION = GET
+        DEFAULT_GET = characters
+      CALLED_REQUEST = GET
     
-    elif RESOURCE == '/':
-      OPERATION = GET_FILES
+    elif REQUEST_STRING == '/':
+      CALLED_REQUEST = GET_FILES
     
-    elif re.match(r'/(.+)', RESOURCE):
-      OPERATION = GET_FILE
-      FILE = RESOURCE[1:]
+    elif re.match(r'/(.+)', REQUEST_STRING):
+      CALLED_REQUEST = GET_FILE
+      FILE = REQUEST_STRING[1:]
       
     else:
-      OPERATION =  INVALID
+      CALLED_REQUEST =  INVALID
 
-  elif METHOD == "POST":
-    if RESOURCE == '/post':
+  elif REQUEST_TYPE == "POST":
+    if REQUEST_STRING == '/post':
        DATA = BODY
-       OPERATION = POST
+       CALLED_REQUEST = POST
     
     else:
-      if re.match(r'/(.+)', RESOURCE):
-        OPERATION = POST_FILE
+      if re.match(r'/(.+)', REQUEST_STRING):
+        CALLED_REQUEST = POST_FILE
         DATA = BODY
-        FILE = RESOURCE[1:]
+        FILE = REQUEST_STRING[1:]
       else:
-        OPERATION = INVALID
-  elif OPERATION == DOWNLOAD:
+        CALLED_REQUEST = INVALID
+  elif CALLED_REQUEST == DOWNLOAD:
     pass
   else:
-    OPERATION = INVALID
+    CALLED_REQUEST = INVALID
 
 def runServer(host, port, directory):
   listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   if os.access(directory, os.R_OK & os.W_OK):
       try:
-        ip_address = socket.gethostbyname(host)
         listener.bind((host, port))
         listener.listen(6)
         print(f'Server is listening at port number {port}\n')
@@ -243,9 +250,9 @@ def runClient(conn, addr, directory):
     print(f'Client response received is " \n{client_response}')
 
 
-    split_response = splitRequest(client_response)
+    split_request = splitRequest(client_response)
 
-    server_response = processRequest(split_response, directory)
+    server_response = processRequest(split_request, directory)
     
     conn.sendall(server_response.encode('utf-8'))
 
@@ -259,10 +266,10 @@ def processRequest(response, dir_path):
   # GET request
 
   # Basic GET
-  if OPERATION == GET:
-    response = returnRequest(PARAM, '200')
+  if CALLED_REQUEST == GET:
+    response = returnRequest(DEFAULT_GET, '200')
   # GET file list
-  elif OPERATION == GET_FILES:    
+  elif CALLED_REQUEST == GET_FILES:    
   # return a list of current files in the data directory
     array = get_All_Files(dir_path)
     files_list = array[0]
@@ -271,21 +278,21 @@ def processRequest(response, dir_path):
     print(f'files list is : {files_list}')
     response = returnRequest(files_list, status_code)
   # Get File Content
-  elif OPERATION == GET_FILE:
+  elif CALLED_REQUEST == GET_FILE:
     array = get_file(FILE, dir_path)
     file_content = array[0]
     status_code = array[1]
     response = returnRequest(file_content, status_code)
   # Get Download
-  elif OPERATION == DOWNLOAD:
+  elif CALLED_REQUEST == DOWNLOAD:
     file_content = "Save me!"
     response = returnRequest(file_content, '200')
   # Post Resource
-  elif OPERATION == POST:
+  elif CALLED_REQUEST == POST:
     response = returnRequest(DATA, '200')
 
   # Post /bar
-  elif OPERATION == POST_FILE:
+  elif CALLED_REQUEST == POST_FILE:
     array = post_file(FILE, dir_path, DATA)
     content_response = array[0]
     status_code = array[1]
@@ -304,10 +311,10 @@ def returnRequest(response_body, status_code):
   STATUS_CODE = status_code
 
   # GET Methods
-  if OPERATION == GET:
-    body_output['args'] = PARAM
+  if CALLED_REQUEST == GET:
+    body_output['args'] = DEFAULT_GET
     STATUS_CODE = '200'  
-  elif OPERATION == GET_FILE:
+  elif CALLED_REQUEST == GET_FILE:
     if STATUS_CODE == '400':
       STATUS_CODE = '400'
       body_output['Error'] = response_body
@@ -316,18 +323,18 @@ def returnRequest(response_body, status_code):
       body_output['Error'] = response_body
     else:
       body_output['content'] = response_body
-  elif OPERATION == GET_FILES:
+  elif CALLED_REQUEST == GET_FILES:
     STATUS_CODE = '200'
     body_output['files'] = response_body
         
-  elif OPERATION == DOWNLOAD:
+  elif CALLED_REQUEST == DOWNLOAD:
     STATUS_CODE = '200'
     body_output['Download Info'] = response_body
 
-  elif OPERATION == POST:
+  elif CALLED_REQUEST == POST:
     STATUS_CODE = '200'
     body_output['data'] = response_body
-  elif OPERATION == POST_FILE:
+  elif CALLED_REQUEST == POST_FILE:
     if STATUS_CODE == '404':
       STATUS_CODE = '404'
       body_output['Error'] = response_body
@@ -372,7 +379,7 @@ def returnRequest(response_body, status_code):
     'Content-Length: ' + str(len(content)) + '\r\n' + \
     'Content-Type: ' + CONTENT_TYPE + '\r\n'
   # Content-Disposition
-  if OPERATION == DOWNLOAD:
+  if CALLED_REQUEST == DOWNLOAD:
      response_header += f'Content-Disposition: attachment; filename={FILE} \r\n'
   response_header += 'Connection: close' + '\r\n\r\n'
   full_response = response_header + content
