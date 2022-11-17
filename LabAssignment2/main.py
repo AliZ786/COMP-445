@@ -23,7 +23,7 @@ GET = 0
 GET_FILES = 1
 GET_FILE = 2
 POST = 3
-DOWNLOAD = 4
+CONTENT_DISPOSITION = 4
 POST_FILE = 5
 INVALID = 6
 STATUS_CODE = '404'
@@ -168,7 +168,7 @@ def splitRequest(request):
       CONTENT_TYPE = string.split(':')[1]
     
     elif re.match(r'Content-Disposition', string):
-      CALLED_REQUEST = DOWNLOAD
+      CALLED_REQUEST = CONTENT_DISPOSITION
       if re.match(r'/(.+)', REQUEST_STRING):
         FILE = REQUEST_STRING[1:]
 
@@ -177,9 +177,9 @@ def splitRequest(request):
 
 
 def callRequest():
-  global CALLED_REQUEST, REQUEST_TYPE, REQUEST_STRING, DEFAULT_GET, FILE, BODY, DATA, DOWNLOAD
+  global CALLED_REQUEST, REQUEST_TYPE, REQUEST_STRING, DEFAULT_GET, FILE, BODY, DATA, CONTENT_DISPOSITION
   
-  if REQUEST_TYPE == "GET" and CALLED_REQUEST != DOWNLOAD:
+  if REQUEST_TYPE == "GET" and CALLED_REQUEST != CONTENT_DISPOSITION:
     if re.match(r'/get', REQUEST_STRING):
       if REQUEST_STRING in ['/get', '/get?']:
         DEFAULT_GET = ''
@@ -216,7 +216,7 @@ def callRequest():
         FILE = REQUEST_STRING[1:]
       else:
         CALLED_REQUEST = INVALID
-  elif CALLED_REQUEST == DOWNLOAD:
+  elif CALLED_REQUEST == CONTENT_DISPOSITION:
     pass
   else:
     CALLED_REQUEST = INVALID
@@ -234,7 +234,7 @@ def runServer(host, port, directory):
           threading.Thread(target= runClient, args = (conn, addr, directory)).start()
         
       except KeyboardInterrupt:
-        print("\nYou have chosen to end the connection. Goodbye")
+        print("\nYou have chosen to end the connection. Goodbye\n")
         listener.close()
   else:
       print("[Error] Connection closed, access to directory denied:", directory)
@@ -244,16 +244,15 @@ def runClient(conn, addr, directory):
   print(f'New client from address number {addr}\n')
 
   try:
-    cont = b''
+    content = b''
     while True:
       buffer_content = conn.recv(BUFFER_SIZE)
-      cont += buffer_content
+      content += buffer_content
 
       if len(buffer_content) < BUFFER_SIZE:
         break
       
-    client_response = cont.decode('utf-8')
-    print(client_response)
+    client_response = content.decode('utf-8')
     print(f'Client response received is " \n{client_response}')
 
 
@@ -268,131 +267,127 @@ def runClient(conn, addr, directory):
     print(f'Client with the address number {addr} has been disconnected')
     
 def processRequest(response, dir_path):
-  # A file manager
   response = "HTTP1.0/ 404 Not Found\r\nContext-Type: application/json\r\n\r\nNo Response"
-  # GET request
 
-  # Basic GET
+  
   if CALLED_REQUEST == GET:
     response = returnRequest(DEFAULT_GET, '200')
-  # GET file list
+ 
   elif CALLED_REQUEST == GET_FILES:    
-  # return a list of current files in the data directory
+ 
     array = get_All_Files(dir_path)
     files_list = array[0]
     status_code = array[1]
     response = returnRequest(files_list, status_code)
-  # Get File Content
+
   elif CALLED_REQUEST == GET_FILE:
     array = get_file(FILE, dir_path)
     file_content = array[0]
     status_code = array[1]
     response = returnRequest(file_content, status_code)
-  # Get Download
-  elif CALLED_REQUEST == DOWNLOAD:
+
+  elif CALLED_REQUEST == CONTENT_DISPOSITION:
     file_content = f"[Doing Content-Disposition]: Save me!"
     response = returnRequest(file_content, '200')
-  # Post Resource
+
   elif CALLED_REQUEST == POST:
     response = returnRequest(DATA, '200')
 
-  # Post /bar
   elif CALLED_REQUEST == POST_FILE:
     array = post_file(FILE, dir_path, DATA)
     content_response = array[0]
     status_code = array[1]
     response = returnRequest(content_response, status_code)
-  # operation is invalid
   else:
-    response = returnRequest('Invalid Request', '400')
+    response = returnRequest('[Invalid]: Invalid Request', '400')
 
   return response
     
 
 def returnRequest(response_body, status_code):
-  # default return JSON format of response body
-  body_output = {}
-  status_message = ''
+  REQUEST_BODY = {}
+  STATUS_MESSAGE = ''
   STATUS_CODE = status_code
   MESSAGE_STRING = 'REQUESTED_RESPONSE'
 
 
   # GET Methods
   if CALLED_REQUEST == GET:
-    body_output[MESSAGE_STRING] = DEFAULT_GET
+    REQUEST_BODY[MESSAGE_STRING] = DEFAULT_GET
     STATUS_CODE = '200'  
   elif CALLED_REQUEST == GET_FILE:
     if STATUS_CODE == '400':
       STATUS_CODE = '400'
-      body_output[MESSAGE_STRING] = response_body
+      REQUEST_BODY[MESSAGE_STRING] = response_body
     elif STATUS_CODE == '404':
       STATUS_CODE = '404'
-      body_output[MESSAGE_STRING] = response_body
+      REQUEST_BODY[MESSAGE_STRING] = response_body
     else:
-      body_output[MESSAGE_STRING] = response_body
+      REQUEST_BODY[MESSAGE_STRING] = response_body
   elif CALLED_REQUEST == GET_FILES:
     STATUS_CODE = '200'
-    body_output[MESSAGE_STRING] = response_body
+    REQUEST_BODY[MESSAGE_STRING] = response_body
         
-  elif CALLED_REQUEST == DOWNLOAD:
+  elif CALLED_REQUEST == CONTENT_DISPOSITION:
     STATUS_CODE = '200'
-    body_output[MESSAGE_STRING] = response_body
+    REQUEST_BODY[MESSAGE_STRING] = response_body
 
   elif CALLED_REQUEST == POST:
     STATUS_CODE = '200'
-    body_output[MESSAGE_STRING] = response_body
+    REQUEST_BODY[MESSAGE_STRING] = response_body
   elif CALLED_REQUEST == POST_FILE:
     if STATUS_CODE == '404':
       STATUS_CODE = '404'
-      body_output[MESSAGE_STRING] = response_body
+      REQUEST_BODY[MESSAGE_STRING] = response_body
             
     elif STATUS_CODE == '400':
       STATUS_CODE = '400'
-      body_output[MESSAGE_STRING] = response_body
+      REQUEST_BODY[MESSAGE_STRING] = response_body
 
     else:
       STATUS_CODE = '200'
-      body_output[MESSAGE_STRING] = response_body
+      REQUEST_BODY[MESSAGE_STRING] = response_body
  
-  elif HTTP_VERSION != 'HTTP/1.1':
+  elif HTTP_VERSION != 'HTTP/1.0':
     STATUS_CODE = '505'
   else:
-    body_output[MESSAGE_STRING] = response_body
-  content = json.dumps(body_output)
+    REQUEST_BODY[MESSAGE_STRING] = response_body
+
+  CONTENT_LENGTH = json.dumps(REQUEST_BODY)
 
   STATUS_CODE = STATUS_CODE
 
   if STATUS_CODE == '200':
-    status_message = ':OK'
+    STATUS_MESSAGE = ':OK'
 
   elif STATUS_CODE == '301':
-    status_message = ':Moved Permanently'
+    STATUS_MESSAGE = ':Moved Permanently'
 
   elif STATUS_CODE == '400':
-    status_message = ':Bad Request'
+    STATUS_MESSAGE = ':Bad Request'
 
   elif STATUS_CODE == '404':
-    status_message = ':Not Found'
+    STATUS_MESSAGE = ':Not Found'
 
   elif STATUS_CODE == '505':
-    status_message = ':HTTP Version Not Support'
+    STATUS_MESSAGE = ':HTTP Version Not Support'
 
         
 
 
-  response_header = HTTP_VERSION + ' ' + str(STATUS_CODE) + ' ' + \
-    status_message + '\r\n' + \
-    'Content-Length: ' + str(len(content)) + '\r\n' + \
+  HTTP_HEADER = HTTP_VERSION + ' ' + str(STATUS_CODE) + ' ' + \
+    STATUS_MESSAGE + '\r\n' + \
+    'Content-Length: ' + str(len(CONTENT_LENGTH)) + '\r\n' + \
     'Content-Type: ' + CONTENT_TYPE + '\r\n'
-  # Content-Disposition
-  if CALLED_REQUEST == DOWNLOAD:
-     response_header += f'Content-Disposition: attachment; filename={FILE} \r\n'
-  response_header += 'Connection: close' + '\r\n\r\n'
-  full_response = response_header + content
 
-  print(f'Response sent to the server would be: \n{full_response}')
+  if CALLED_REQUEST == CONTENT_DISPOSITION:
+     HTTP_HEADER += f'Content-Disposition: attachment; filename={FILE} \r\n'
+  HTTP_HEADER += 'Connection: close' + '\r\n\r\n'
+  HTTP_FINAL = HTTP_HEADER + CONTENT_LENGTH
 
-  return full_response     
+  print(f'Based on request recieved from curl, the current received http_response from the client was: \n{HTTP_FINAL}')
+
+  return HTTP_FINAL     
 
   
 
