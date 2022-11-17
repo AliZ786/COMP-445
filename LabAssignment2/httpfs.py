@@ -38,11 +38,12 @@ parser.add_argument('-p','--port',help='Specifies the port number that the serve
 parser.add_argument('-d','--dir',help='Specifies the directory that the server will use to read/write \
                                     requested files.', default='./data' )
 args = parser.parse_args()
+print(args)
 
 
 
-
-def get_All_Files(directory):
+#All the functions go here
+def getAllFiles(directory):
   files_list = []
   STATUS_CODE = ''
   dir_list = []
@@ -65,7 +66,7 @@ def get_All_Files(directory):
   STATUS_CODE = '200'
   return RESPONSE_STRING, STATUS_CODE 
 
-def check_Access(file, directory):
+def checkAccess(file, directory):
   files_list = []
   STATUS_CODE = ''
   RESPONSE_STRING = ''
@@ -84,16 +85,14 @@ def check_Access(file, directory):
       file = file.split('/')[-1]
       directory = file.split('/')[-2]
 
-    files_list =  get_All_Files(directory)
-
-    RESPONSE_STRING = (f'The list of files in the directory {directory} are: {files_list}')
+    files_list =  getAllFiles(directory)
 
 
   return files_list, file, directory, STATUS_CODE
 
-def get_file(file, directory):
+def getFile(file, directory):
 
-  files_list = check_Access(file, directory) 
+  files_list = checkAccess(file, directory) 
   STATUS_CODE =''
   RESPONSE_STRING = ''
 
@@ -123,8 +122,8 @@ def get_file(file, directory):
 
   return RESPONSE_STRING, STATUS_CODE
 
-def post_file(file, directory, content):
-  files_list = check_Access(file, directory)
+def postFile(file, directory, content):
+  files_list = checkAccess(file, directory)
   STATUS_CODE =''
 
   if len(files_list) > 0:
@@ -267,7 +266,7 @@ def runClient(conn, addr, directory):
     print(f'Client with the address number {addr} has been disconnected')
     
 def processRequest(response, dir_path):
-  response = "HTTP1.0/ 404 Not Found\r\nContext-Type: application/json\r\n\r\nNo Response"
+  response = ""
 
   
   if CALLED_REQUEST == GET:
@@ -275,13 +274,13 @@ def processRequest(response, dir_path):
  
   elif CALLED_REQUEST == GET_FILES:    
  
-    array = get_All_Files(dir_path)
+    array = getAllFiles(dir_path)
     files_list = array[0]
     status_code = array[1]
     response = returnRequest(files_list, status_code)
 
   elif CALLED_REQUEST == GET_FILE:
-    array = get_file(FILE, dir_path)
+    array = getFile(FILE, dir_path)
     file_content = array[0]
     status_code = array[1]
     response = returnRequest(file_content, status_code)
@@ -294,7 +293,7 @@ def processRequest(response, dir_path):
     response = returnRequest(DATA, '200')
 
   elif CALLED_REQUEST == POST_FILE:
-    array = post_file(FILE, dir_path, DATA)
+    array = postFile(FILE, dir_path, DATA)
     content_response = array[0]
     status_code = array[1]
     response = returnRequest(content_response, status_code)
@@ -311,7 +310,6 @@ def returnRequest(response_body, status_code):
   MESSAGE_STRING = 'REQUESTED_RESPONSE'
 
 
-  # GET Methods
   if CALLED_REQUEST == GET:
     REQUEST_BODY[MESSAGE_STRING] = DEFAULT_GET
     STATUS_CODE = '200'  
